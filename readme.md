@@ -20,3 +20,11 @@ Make the changes to your `start.sh` file for modifying default db configurations
 `docker-compose.yml` file. This contains the database migrations scripts. You just need to bring the container up.
 
    To start the docker container, run the `docker-compose up`.
+
+
+#### Technical Requirements
+  * Language used : GoLang
+  * Database Used : MySQL
+  * Libraries Used:
+    * [Gorilla/Mux](https://github.com/gorilla/mux)
+    * [Go SQL Driver](https://github.com/go-sql-driver/mysql)
