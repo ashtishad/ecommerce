@@ -23,8 +23,10 @@ func (us *UserHandlers) createUserHandler(w http.ResponseWriter, r *http.Request
 		return
 	}
 
-	// Validate the request data as needed using regex
-	// ...
+	if err := validateCreateUserInput(newUserRequest); err != nil {
+		writeResponse(w, http.StatusBadRequest, map[string]string{"error": err.Error()})
+		return
+	}
 
 	userResponse, err := us.service.NewUser(newUserRequest)
 	if err != nil {

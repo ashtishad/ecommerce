@@ -1,6 +1,7 @@
 package app
 
 import (
+	"bitbucket.org/ashtishad/as_ti/domain"
 	"bytes"
 	"log"
 	"net/http"
@@ -52,5 +53,56 @@ func TestWriteResponse(t *testing.T) {
 		if rr.Body.String() != expected {
 			t.Errorf("handler returned unexpected body: got %v want %v", rr.Body.String(), expected)
 		}
+	}
+}
+
+func TestValidateCreateUserInput(t *testing.T) {
+	tests := []struct {
+		name    string
+		input   domain.NewUserRequestDTO
+		wantErr bool
+	}{
+		{
+			name: "valid input",
+			input: domain.NewUserRequestDTO{
+				Email:        "test@example.com",
+				Password:     "password123",
+				FullName:     "John Doe",
+				Phone:        "1234567890",
+				SignUpOption: "general",
+			},
+			wantErr: false,
+		},
+		{
+			name: "invalid email",
+			input: domain.NewUserRequestDTO{
+				Email:        "invalid-email",
+				Password:     "password123",
+				FullName:     "John Doe",
+				Phone:        "1234567890",
+				SignUpOption: "general",
+			},
+			wantErr: true,
+		},
+		{
+			name: "invalid password",
+			input: domain.NewUserRequestDTO{
+				Email:        "test@example.com",
+				Password:     "pass",
+				FullName:     "John Doe",
+				Phone:        "1234567890",
+				SignUpOption: "general",
+			},
+			wantErr: true,
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			err := validateCreateUserInput(tt.input)
+			if (err != nil) != tt.wantErr {
+				t.Errorf("validateCreateUserInput() error = %v, wantErr %v", err, tt.wantErr)
+			}
+		})
 	}
 }
