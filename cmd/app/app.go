@@ -1,6 +1,8 @@
 package app
 
 import (
+	"bitbucket.org/ashtishad/as_ti/domain"
+	"bitbucket.org/ashtishad/as_ti/service"
 	"fmt"
 	"github.com/gorilla/mux"
 	"log"
@@ -11,15 +13,20 @@ import (
 func Start() {
 	sanityCheck()
 
+	// l := log.New(os.Stdout, "users-api ", log.LstdFlags)
+
 	r := mux.NewRouter()
 
 	// database connection config
 	conn := getDbClient()
 	defer conn.Close()
 
+	// wire up the handler
+	userRepositoryDB := domain.NewUserRepositoryDB(conn)
+	uh := UserHandlers{service.NewUserService(userRepositoryDB)}
 	// define routes
 	r.
-		HandleFunc("/user", createUserHandler).
+		HandleFunc("/user", uh.createUserHandler).
 		Methods(http.MethodPost).
 		Name("Create User")
 
