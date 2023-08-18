@@ -1,8 +1,10 @@
 package app
 
 import (
+	"encoding/json"
 	"fmt"
 	"log"
+	"net/http"
 	"os"
 )
 
@@ -22,5 +24,14 @@ func sanityCheck() {
 		if os.Getenv(k) == "" {
 			log.Println(fmt.Sprintf("environment variable %s not defined. Terminating application...", k))
 		}
+	}
+}
+
+// writeResponse writes api endpoint response data and correct http status code in response.
+func writeResponse(w http.ResponseWriter, code int, data interface{}) {
+	w.Header().Add("Content-Type", "application/json")
+	w.WriteHeader(code)
+	if err := json.NewEncoder(w).Encode(data); err != nil {
+		panic(err)
 	}
 }
