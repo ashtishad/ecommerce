@@ -13,12 +13,13 @@ To run the application, you have to define the environment variables, default va
 - DB_PASSWD         `[Database password]`: `root`
 - DB_ADDR           `[IP address of the database]` : `localhost`
 - DB_PORT           `[Port of the database]` : `3306`
-- DB_NAME           `[Name of the database]` : `user_auth`
+- DB_NAME           `[Name of the database]` : `users`
 
 #### MySQL Database
 Make the changes to your `start.sh` file for modifying default db configurations.
-`docker-compose.yml` file. This contains the database migrations scripts. You just need to bring the container up.
-
+* `docker-compose.yml` file. This contains the database migrations scripts. You just need to bring the container up.
+* `ocker-compose down
+  docker volume rm as_ti_mysqldata` to wipe up database and remove applied migrations.
    To start the docker container, run the `docker-compose up`.
 
 

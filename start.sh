@@ -5,5 +5,5 @@ export DB_USER=root
 export DB_PASSWD=root
 export DB_ADDR=localhost
 export DB_PORT=3306
-export DB_NAME=user_auth
+export DB_NAME=users
 go run main.go
