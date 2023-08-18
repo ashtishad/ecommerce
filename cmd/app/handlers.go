@@ -11,25 +11,26 @@ type UserHandlers struct {
 	service service.UserService
 }
 
+// createUserHandler decodes the user request, returns bad request error if failed to decode json
+// then validates user data using regex,
+// then calls the service method to create a new user,
+// finally write the response data and correct http status code.
 func (us *UserHandlers) createUserHandler(w http.ResponseWriter, r *http.Request) {
-	// Decode the JSON request
 	var newUserRequest domain.NewUserRequestDTO
 	err := json.NewDecoder(r.Body).Decode(&newUserRequest)
 	if err != nil {
-		http.Error(w, "Bad request", http.StatusBadRequest)
+		writeResponse(w, http.StatusBadRequest, map[string]string{"error": "bad request"})
 		return
 	}
 
 	// Validate the request data as needed using regex
+	// ...
 
-	// Call the service method to create a new user
 	userResponse, err := us.service.NewUser(newUserRequest)
 	if err != nil {
-		http.Error(w, "Internal server error", http.StatusInternalServerError)
+		writeResponse(w, http.StatusInternalServerError, map[string]string{"error": "internal server error"})
 		return
 	}
 
-	// Send the response
-	w.Header().Set("Content-Type", "application/json")
-	json.NewEncoder(w).Encode(userResponse)
+	writeResponse(w, http.StatusOK, userResponse)
 }

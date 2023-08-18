@@ -2,7 +2,6 @@ package service
 
 import (
 	"bitbucket.org/ashtishad/as_ti/domain"
-	"fmt"
 )
 
 type UserService interface {
@@ -23,16 +22,16 @@ func NewUserService(repository domain.UserRepository) DefaultUserService {
 func (service DefaultUserService) NewUser(request domain.NewUserRequestDTO) (*domain.UserResponseDTO, error) {
 	user := domain.User{
 		Email:        request.Email,
-		PasswordHash: request.Password, // You must hash this before saving
+		PasswordHash: request.Password,
 		FullName:     request.FullName,
 		Phone:        request.Phone,
 		SignUpOption: request.SignUpOption,
-		Status:       "active", // Set initial status or based on request
+		Status:       "active",
 	}
 
 	createdUser, err := service.repo.Save(user)
 	if err != nil {
-		return nil, fmt.Errorf("error creating user: %v", err)
+		return nil, err
 	}
 
 	userResponseDTO := &domain.UserResponseDTO{
