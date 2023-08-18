@@ -5,14 +5,16 @@ import (
 	"database/sql"
 	"errors"
 	"fmt"
+	"log"
 )
 
 type UserRepositoryDB struct {
 	db *sql.DB
+	l  *log.Logger
 }
 
-func NewUserRepositoryDB(dbClient *sql.DB) UserRepositoryDB {
-	return UserRepositoryDB{dbClient}
+func NewUserRepositoryDB(dbClient *sql.DB, l *log.Logger) UserRepositoryDB {
+	return UserRepositoryDB{dbClient, l}
 }
 
 // Save is responsible for creating user from fields provided in domain.NewUserRequestDTO
@@ -25,11 +27,13 @@ func (d UserRepositoryDB) Save(user User) (User, error) {
 
 	result, err := d.db.ExecContext(context.Background(), sqlInsertUser, user.Email, user.PasswordHash, user.FullName, user.Phone, user.SignUpOption)
 	if err != nil {
+		//d.l.Println(err.Error())
 		return User{}, fmt.Errorf("error inserting user: %v", err)
 	}
 
 	id, err := result.LastInsertId()
 	if err != nil || id == 0 {
+		//d.l.Println(err.Error())
 		return User{}, fmt.Errorf("error getting last inserted user ID: %v", err)
 	}
 
@@ -47,6 +51,7 @@ func (d UserRepositoryDB) findUserByID(userID int) (User, error) {
 	err := row.Scan(&user.UserID, &user.UserUUID, &user.Email, &user.PasswordHash, &user.FullName, &user.Phone, &user.SignUpOption, &user.Status, &user.CreatedAt, &user.UpdatedAt)
 	if err != nil {
 		if errors.Is(err, sql.ErrNoRows) {
+			//d.l.Println(err.Error())
 			return User{}, fmt.Errorf("user not found with user_id: %d", userID)
 		}
 		return User{}, fmt.Errorf("error scanning user data: %v", err)

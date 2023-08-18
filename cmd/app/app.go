@@ -13,17 +13,19 @@ import (
 func Start() {
 	sanityCheck()
 
-	// l := log.New(os.Stdout, "users-api ", log.LstdFlags)
-
 	r := mux.NewRouter()
 
 	// database connection config
 	conn := getDbClient()
 	defer conn.Close()
 
+	// initiated logger, dependency injection, create once, inject it where needed
+	l := log.New(os.Stdout, "users-api ", log.LstdFlags)
+
 	// wire up the handler
-	userRepositoryDB := domain.NewUserRepositoryDB(conn)
-	uh := UserHandlers{service.NewUserService(userRepositoryDB)}
+	userRepositoryDB := domain.NewUserRepositoryDB(conn, l)
+	uh := UserHandlers{service.NewUserService(userRepositoryDB), l}
+
 	// define routes
 	r.
 		HandleFunc("/user", uh.createUserHandler).
