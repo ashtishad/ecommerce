@@ -17,7 +17,7 @@ func createDSN() string {
 	dbPort := os.Getenv("DB_PORT")
 	dbName := os.Getenv("DB_NAME")
 
-	return fmt.Sprintf("%s:%s@tcp(%s:%s)/%s?sslmode=disable&timezone=utc", dbUser, dbPasswd, dbAddr, dbPort, dbName)
+	return fmt.Sprintf("%s:%s@tcp(%s:%s)/%s?charset=utf8mb4&parseTime=True", dbUser, dbPasswd, dbAddr, dbPort, dbName)
 }
 
 func getDbClient() *sql.DB {
