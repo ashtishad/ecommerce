@@ -1,4 +1,4 @@
-module bitbucket.org/ashtishad/auth
+module bitbucket.org/ashtishad/as_ti
 
 go 1.21.0
 
