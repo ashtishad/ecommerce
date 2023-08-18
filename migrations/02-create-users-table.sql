@@ -1,5 +1,6 @@
 -- migrations/02-create-users-table.sql
 USE users;
+
 CREATE TABLE IF NOT EXISTS users (
                        user_id INT AUTO_INCREMENT PRIMARY KEY,
                        user_uuid CHAR(36) NOT NULL DEFAULT (UUID()),
@@ -12,6 +13,9 @@ CREATE TABLE IF NOT EXISTS users (
                        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
                        updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
 );
+
+
+# ALTER TABLE users AUTO_INCREMENT = 1;
 
 
 -- chosen sign_up_option as enum, it will have fixed values and will provide extensibility and better validation.
