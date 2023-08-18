@@ -1,7 +1,7 @@
 package main
 
-import "fmt"
+import "bitbucket.org/ashtishad/auth/cmd/app"
 
 func main() {
-	fmt.Print("Hello World")
+	app.Start()
 }
