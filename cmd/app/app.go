@@ -28,20 +28,3 @@ func Start() {
 	port := os.Getenv("SERVER_PORT")
 	log.Fatal(http.ListenAndServe(fmt.Sprintf("%s:%s", address, port), r))
 }
-
-func sanityCheck() {
-	envProps := []string{
-		"SERVER_ADDRESS",
-		"SERVER_PORT",
-		"DB_USER",
-		"DB_PASSWD",
-		"DB_ADDR",
-		"DB_PORT",
-		"DB_NAME",
-	}
-	for _, k := range envProps {
-		if os.Getenv(k) == "" {
-			log.Println(fmt.Sprintf("Environment variable %s not defined. Terminating application...", k))
-		}
-	}
-}
