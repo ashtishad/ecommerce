@@ -3,6 +3,7 @@ package app
 import (
 	"bitbucket.org/ashtishad/as_ti/domain"
 	"bitbucket.org/ashtishad/as_ti/service"
+	"database/sql"
 	"fmt"
 	"github.com/gorilla/mux"
 	"log"
@@ -15,12 +16,17 @@ func Start() {
 
 	r := mux.NewRouter()
 
-	// database connection config
-	conn := getDbClient()
-	defer conn.Close()
-
 	// initiated logger, dependency injection, create once, inject it where needed
 	l := log.New(os.Stdout, "users-api ", log.LstdFlags)
+
+	// database connection config
+	conn := getDbClient()
+	defer func(conn *sql.DB) {
+		err := conn.Close()
+		if err != nil {
+			l.Printf("couldn't close the database client : %v", err.Error())
+		}
+	}(conn)
 
 	// wire up the handler
 	userRepositoryDB := domain.NewUserRepositoryDB(conn, l)
