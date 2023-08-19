@@ -32,6 +32,11 @@ func Start() {
 		Methods(http.MethodPost).
 		Name("Create User")
 
+	r.
+		HandleFunc("/existing-user", uh.existingUserHandler).
+		Methods(http.MethodPost).
+		Name("Existing User")
+
 	// starting server
 	address := os.Getenv("SERVER_ADDRESS")
 	port := os.Getenv("SERVER_PORT")
