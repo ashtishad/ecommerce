@@ -15,7 +15,7 @@ CREATE TABLE IF NOT EXISTS users (
 );
 
 
-# ALTER TABLE users AUTO_INCREMENT = 1;
+ALTER TABLE users AUTO_INCREMENT = 1;
 
 
 -- chosen sign_up_option as enum, it will have fixed values and will provide extensibility and better validation.
