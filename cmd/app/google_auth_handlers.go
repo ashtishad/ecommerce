@@ -18,24 +18,24 @@ type GoogleAuthHandler struct {
 var oauth2Config = &oauth2.Config{
 	ClientID:     os.Getenv("GOOGLE_AUTH_CLIENT_ID"),
 	ClientSecret: os.Getenv("GOOGLE_AUTH_CLIENT_SECRET"),
-	RedirectURL:  "http://localhost:8000/google-callback",
+	RedirectURL:  os.Getenv("GOOGLE_AUTH_REDIRECT_URL"),
 	Scopes:       []string{"https://www.googleapis.com/auth/userinfo.profile", "https://www.googleapis.com/auth/userinfo.email"},
 	Endpoint:     google.Endpoint,
 }
 
-// startGoogleLoginHandler starts google auth process, checks if google auth client id and secret is set
+// startGoogleLoginHandler starts a Google auth process, checks if google auth client id and secret is set
 // gets the auth url, and redirects to the callback url
 func (gh *GoogleAuthHandler) startGoogleLoginHandler(w http.ResponseWriter, r *http.Request) {
-	if oauth2Config.ClientID == "" || oauth2Config.ClientSecret == "" {
-		gh.l.Printf("invalid google auth client id %s or secret %s", oauth2Config.ClientID, oauth2Config.ClientSecret)
+	if oauth2Config.ClientID == "" || oauth2Config.ClientSecret == "" || oauth2Config.RedirectURL == "" {
+		gh.l.Printf("missing %s or secret %s or redirect url %s", oauth2Config.ClientID, oauth2Config.ClientSecret, oauth2Config.RedirectURL)
 		return
 	}
 	authURL := oauth2Config.AuthCodeURL("", oauth2.AccessTypeOffline)
 	http.Redirect(w, r, authURL, http.StatusSeeOther)
 }
 
-// googleCallbackHandler takes the code from google, generates token, validates it
-// gets the client, get's data(only name and email) from google, and generates random for rest of the fields
+// googleCallbackHandler takes the code from Google, generates token, validates it
+// gets the client, gets data(only name and email) from Google, and generates random for rest of the fields
 // sends post request to /user endpoint for user creation or update
 // sign_up_option will be set as "google" in database and finally returns the response
 func (gh *GoogleAuthHandler) googleCallbackHandler(w http.ResponseWriter, r *http.Request) {
@@ -97,5 +97,7 @@ func (gh *GoogleAuthHandler) googleCallbackHandler(w http.ResponseWriter, r *htt
 	}
 
 	w.WriteHeader(createUserResp.StatusCode)
-	w.Write(createUserRespBody)
+	if _, err := w.Write(createUserRespBody); err != nil {
+		return
+	}
 }
