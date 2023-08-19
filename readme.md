@@ -68,9 +68,9 @@ Make the changes to your `start.sh` file for modifying default db configurations
 #### Testing Google Auth
 
 ```
-1. Go to localhost:port/login page, login with your google account, select/enter your gmail account
-2. After redirecting to callback url, you will see a user created with sign_up_option= google
-3. Please use only 8000,8001,5000,5001 ports as SERVER_PORT in environemnt varibales.
+1. Go to localhost:port/login page, login with your google account, select/enter your gmail account.
+2. After redirecting to callback url, you will see a user created with sign_up_option= google.
+3. Please use only 8000,8001,5000,5001 ports as SERVER_PORT in environemnt varibales..
 
 
 As only backend is implemented for it, so I have skipped usual steps:
@@ -78,3 +78,35 @@ Frontend obtains Google OAuth token
 Frontend sends OAuth token to backend
 Backend verifies the token
 ```
+
+#### Example Requests
+
+###### Create a user
+
+```
+curl --location 'localhost:8000/user' \
+--header 'Content-Type: application/json' \
+--data-raw '{"email":"keanu_reeves@gmail.com","full_name":"Keanu Reeves","password":"secrpsswrd","phone":"1234567890","sign_up_option":"general"}'
+```
+
+###### Update a user
+
+```
+curl --location 'localhost:8000/user' \
+--header 'Content-Type: application/json' \
+--data-raw '{"email":"keanu_reeves@gmail.com","full_name":"John Wick","password":"secrpsswrd","phone":"1234567890","sign_up_option":"general"}'
+```
+
+###### Check Existing User by Email and Password
+
+```
+
+curl --location 'localhost:8000/existing-user' \
+--header 'Content-Type: application/json' \
+--data-raw '{
+"email": "keanu_reeves@gmail.com",
+"password": "seepasword"
+}'
+
+```
+
