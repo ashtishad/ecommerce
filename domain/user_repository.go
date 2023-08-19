@@ -4,4 +4,5 @@ package domain
 // It will connect to the Database adapter or mock/stub adapter
 type UserRepository interface {
 	Save(user User) (User, error)
+	FindExisting(string, string) (User, error)
 }

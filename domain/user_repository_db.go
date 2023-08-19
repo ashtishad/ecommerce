@@ -41,6 +41,25 @@ func (d UserRepositoryDB) Save(user User) (User, error) {
 	return user, err
 }
 
+// FindExisting takes user email and password hash string and returns existing user's record
+// returns error if internal server error happened.
+func (d UserRepositoryDB) FindExisting(email string, pass string) (User, error) {
+	query := `SELECT user_id, user_uuid, email, password_hash, full_name, phone, sign_up_option, status, created_at, updated_at FROM users WHERE email = ? AND password_hash= ?`
+	row := d.db.QueryRow(query, email, pass)
+
+	var user User
+	err := row.Scan(&user.UserID, &user.UserUUID, &user.Email, &user.PasswordHash, &user.FullName, &user.Phone, &user.SignUpOption, &user.Status, &user.CreatedAt, &user.UpdatedAt)
+	if err != nil {
+		if errors.Is(err, sql.ErrNoRows) {
+			d.l.Println(err.Error())
+			return User{}, fmt.Errorf("email and password hash combination is wrong: %s %s", email, pass)
+		}
+		return User{}, fmt.Errorf("error scanning user data: %v", err)
+	}
+
+	return user, nil
+}
+
 // findUserByID takes userId and returns a single user's record
 // returns error if internal server error happened.
 func (d UserRepositoryDB) findUserByID(userID int) (User, error) {

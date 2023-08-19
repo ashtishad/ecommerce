@@ -24,3 +24,9 @@ type NewUserRequestDTO struct {
 	Phone        string `json:"phone"`
 	SignUpOption string `json:"sign_up_option"` // Enum 'general', 'google', can have a default value
 }
+
+// ExistingUserRequestDTO only has email for existing user
+type ExistingUserRequestDTO struct {
+	Email    string `json:"email" `
+	Password string `json:"password" `
+}
