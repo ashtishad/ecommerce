@@ -22,12 +22,13 @@ func NewUserRepositoryDB(dbClient *sql.DB, l *log.Logger) UserRepositoryDB {
 // return sql.ErrNoRows or internal server error if some error occurs in database side.
 // To ensure data integrity, it refetch user information with the help of findUserByID method.
 func (d UserRepositoryDB) Save(user User) (User, error) {
-	existingUser, err := d.FindExisting(user.Email, user.PasswordHash)
+	existingUser, err := d.FindExisting(user.Email)
 	if err != nil && !errors.Is(err, sql.ErrNoRows) {
 		return User{}, fmt.Errorf("error checking existing user: %v", err)
 	}
 
-	if err == nil {
+	// using email, as it's a unique constraint and index also
+	if existingUser.Email == user.Email {
 		// User exists, so update
 		_, err = d.db.ExecContext(context.Background(), sqlUpdateUser, user.PasswordHash, user.FullName, user.Phone, user.SignUpOption, user.Email)
 		if err != nil {
@@ -50,11 +51,10 @@ func (d UserRepositoryDB) Save(user User) (User, error) {
 	return d.findUserByID(int(id))
 }
 
-// FindExisting takes user email and password hash string and returns existing user's record
+// FindExisting takes user email and returns existing user's record
 // returns error if internal server error happened.
-func (d UserRepositoryDB) FindExisting(email string, pass string) (User, error) {
-	query := `SELECT user_id, user_uuid, email, password_hash, full_name, phone, sign_up_option, status, created_at, updated_at FROM users WHERE email = ? AND password_hash= ?`
-	row := d.db.QueryRow(query, email, pass)
+func (d UserRepositoryDB) FindExisting(email string) (User, error) {
+	row := d.db.QueryRow(findExistingUserByEmail, email)
 
 	var user User
 	err := row.Scan(&user.UserID, &user.UserUUID, &user.Email, &user.PasswordHash, &user.FullName, &user.Phone, &user.SignUpOption, &user.Status, &user.CreatedAt, &user.UpdatedAt)
@@ -78,7 +78,7 @@ func (d UserRepositoryDB) findUserByID(userID int) (User, error) {
 	if err != nil {
 		if errors.Is(err, sql.ErrNoRows) {
 			//d.l.Println(err.Error())
-			return User{}, fmt.Errorf("user not found with user_id: %d", userID)
+			return User{}, err
 		}
 		return User{}, fmt.Errorf("error scanning user data: %v", err)
 	}

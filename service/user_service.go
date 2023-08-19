@@ -58,7 +58,7 @@ func (service DefaultUserService) ExistingUser(request domain.ExistingUserReques
 		PasswordHash: request.Password,
 	}
 
-	existingUser, err := service.repo.FindExisting(userRequest.Email, userRequest.PasswordHash)
+	existingUser, err := service.repo.FindExisting(userRequest.Email)
 	if err != nil {
 		return nil, err
 	}
