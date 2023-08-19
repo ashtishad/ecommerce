@@ -19,7 +19,7 @@ type UserResponseDTO struct {
 // and, excluded auto-generated fields
 type NewUserRequestDTO struct {
 	Email        string `json:"email" `
-	Password     string `json:"password" ` // It should be handled securely and hashed before storing
+	Password     string `json:"password" `
 	FullName     string `json:"full_name"`
 	Phone        string `json:"phone"`
 	SignUpOption string `json:"sign_up_option"` // Enum 'general', 'google', can have a default value

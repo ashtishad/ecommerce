@@ -1,4 +1,4 @@
-### Auth Challenge
+### Auth Challenge - Backend
 
 ##### Run `./start.sh` to download the dependencies and run the application.
 * Make the Script Executable: You must give the script execute permissions before you can run it. Use the following command:
@@ -110,3 +110,8 @@ curl --location 'localhost:8000/existing-user' \
 
 ```
 
+#### Handled password with salt mechanism on [feature/pasword_hashing_salt](https://bitbucket.org/ashtishad/as_ti/src/c52d550196fc6169124340defb71af37e2a00e19/?at=feature%2Fpasword_hashing_salt) branch
+
+* generates new salt + hashed-password on user create
+* on updates it also update the salt value
+* used database transactions for multi table update, insert.

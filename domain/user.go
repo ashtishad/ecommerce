@@ -6,7 +6,7 @@ type User struct {
 	UserID       int       `json:"user_id"`
 	UserUUID     string    `json:"user_uuid"`
 	Email        string    `json:"email"`
-	PasswordHash string    `json:"password_hash"` // It's important to handle this field securely
+	PasswordHash string    `json:"password_hash"`
 	FullName     string    `json:"full_name"`
 	Phone        string    `json:"phone"`
 	SignUpOption string    `json:"sign_up_option"` // Enum 'general', 'google'
