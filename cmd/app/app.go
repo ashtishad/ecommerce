@@ -31,6 +31,7 @@ func Start() {
 	// wire up the handler
 	userRepositoryDB := domain.NewUserRepositoryDB(conn, l)
 	uh := UserHandlers{service.NewUserService(userRepositoryDB), l}
+	gh := GoogleAuthHandler{l: l}
 
 	// define routes
 	r.
@@ -40,8 +41,16 @@ func Start() {
 
 	r.
 		HandleFunc("/existing-user", uh.existingUserHandler).
-		Methods(http.MethodPost).
+		Methods(http.MethodPost, http.MethodGet).
 		Name("Existing User")
+	r.
+		HandleFunc("/login", gh.startGoogleLoginHandler).
+		Methods(http.MethodPost, http.MethodGet).
+		Name("Google Login")
+	r.
+		HandleFunc("/callback", gh.googleCallbackHandler).
+		Methods(http.MethodPost, http.MethodGet).
+		Name("Google Callback")
 
 	// starting server
 	address := os.Getenv("SERVER_ADDRESS")
