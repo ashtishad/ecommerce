@@ -1,6 +1,9 @@
-### Ecommerce
+## Ecommerce Microservice
 
-##### Run `./start.sh` to download the dependencies and run the application.
+#### Environment Setup
+
+###### Clone using ssh protocol `git clone git@github.com:ashtishad/ecommerce.git`
+###### Run `./start.sh` to download the dependencies and run the application.
 * Make the Script Executable: You must give the script execute permissions before you can run it. Use the following command:
   `chmod +x start.sh`
 
@@ -15,7 +18,7 @@ To run the application, you have to define the environment variables, default va
 - DB_PORT           `[Port of the database]` : `3306`
 - DB_NAME           `[Name of the database]` : `users`
 
-#### MySQL Database
+###### MySQL Database Setup
 Make the changes to your `start.sh` file for modifying default db configurations.
 * `docker-compose.yml` file. This contains the database migrations scripts. You just need to bring the container up.
 * `docker-compose down
@@ -24,7 +27,7 @@ Make the changes to your `start.sh` file for modifying default db configurations
 * Run the application with `./start.sh` command from project root. or, if you want to run it from IDE, please set
   environment variables by executing command from start.sh on your terminal
 
-#### Tools
+#### Tools Used
 
 * Language used: GoLang
 * Database Used: MySQL
