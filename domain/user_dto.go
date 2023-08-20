@@ -30,3 +30,13 @@ type ExistingUserRequestDTO struct {
 	Email    string `json:"email" `
 	Password string `json:"password" `
 }
+
+// UpdateUserResponseDTO has necessary fields for user response
+// excludes sensitive data, such as, UserID(actual database column id) and password
+type UpdateUserResponseDTO struct {
+	Email        string `json:"email"`
+	FullName     string `json:"full_name"`
+	Phone        string `json:"phone"`
+	SignUpOption string `json:"sign_up_option"` // Enum 'general', 'google'
+	Status       string `json:"status"`         // Enum 'active', 'inactive', 'deleted'
+}
