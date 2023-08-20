@@ -1,10 +1,10 @@
 package app
 
 import (
-	"bitbucket.org/ashtishad/as_ti/domain"
 	"encoding/json"
 	"errors"
 	"fmt"
+	"github.com/ashtishad/ecommerce/domain"
 	"log"
 	"net/http"
 	"os"

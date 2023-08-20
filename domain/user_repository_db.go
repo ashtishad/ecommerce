@@ -1,11 +1,11 @@
 package domain
 
 import (
-	"bitbucket.org/ashtishad/as_ti/pkg/hashpassword"
 	"context"
 	"database/sql"
 	"errors"
 	"fmt"
+	"github.com/ashtishad/ecommerce/pkg/hashpassword"
 	"log"
 )
 

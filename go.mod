@@ -1,4 +1,4 @@
-module bitbucket.org/ashtishad/as_ti
+module github.com/ashtishad/ecommerce
 
 go 1.21.0
 

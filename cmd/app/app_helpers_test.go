@@ -1,8 +1,8 @@
 package app
 
 import (
-	"bitbucket.org/ashtishad/as_ti/domain"
 	"bytes"
+	"github.com/ashtishad/ecommerce/domain"
 	"log"
 	"net/http"
 	"net/http/httptest"

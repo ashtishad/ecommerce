@@ -1,6 +1,6 @@
 package main
 
-import "bitbucket.org/ashtishad/as_ti/cmd/app"
+import "github.com/ashtishad/ecommerce/cmd/app"
 
 func main() {
 	app.Start()

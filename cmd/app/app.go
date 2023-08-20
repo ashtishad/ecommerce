@@ -1,10 +1,10 @@
 package app
 
 import (
-	"bitbucket.org/ashtishad/as_ti/domain"
-	"bitbucket.org/ashtishad/as_ti/service"
 	"database/sql"
 	"fmt"
+	"github.com/ashtishad/ecommerce/domain"
+	"github.com/ashtishad/ecommerce/service"
 	"github.com/gorilla/mux"
 	"log"
 	"net/http"

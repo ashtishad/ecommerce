@@ -1,8 +1,8 @@
 package service
 
 import (
-	"bitbucket.org/ashtishad/as_ti/domain"
-	"bitbucket.org/ashtishad/as_ti/pkg/hashpassword"
+	"github.com/ashtishad/ecommerce/domain"
+	"github.com/ashtishad/ecommerce/pkg/hashpassword"
 )
 
 type UserService interface {

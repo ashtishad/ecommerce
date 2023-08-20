@@ -111,7 +111,7 @@ curl --location 'localhost:8000/existing-user' \
 
 ```
 
-#### FEATURES
+#### Design Decisions
 
 ###### 1. Handle password with salt mechanism
 

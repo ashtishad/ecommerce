@@ -1,9 +1,9 @@
 package app
 
 import (
-	"bitbucket.org/ashtishad/as_ti/domain"
-	"bitbucket.org/ashtishad/as_ti/service"
 	"encoding/json"
+	"github.com/ashtishad/ecommerce/domain"
+	"github.com/ashtishad/ecommerce/service"
 	"log"
 	"net/http"
 )
