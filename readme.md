@@ -1,4 +1,4 @@
-### Auth Challenge
+### Ecommerce
 
 ##### Run `./start.sh` to download the dependencies and run the application.
 * Make the Script Executable: You must give the script execute permissions before you can run it. Use the following command:
@@ -8,7 +8,7 @@
 To run the application, you have to define the environment variables, default values of the variables are defined inside `start.sh`
 
 - SERVER_ADDRESS    `[IP Address of the machine]` : `localhost`
-- SERVER_PORT       `[Port of the machine]` : `8000` `only 5000,5001,8000,80001 are allowed for google auth callback`
+- SERVER_PORT       `[Port of the machine]` : `8000` `only 5000,5001,8000,8001 are allowed for google auth callback`
 - DB_USER           `[Database username]` : `root`
 - DB_PASSWD         `[Database password]`: `root`
 - DB_ADDR           `[IP address of the database]` : `localhost`
@@ -19,14 +19,15 @@ To run the application, you have to define the environment variables, default va
 Make the changes to your `start.sh` file for modifying default db configurations.
 * `docker-compose.yml` file. This contains the database migrations scripts. You just need to bring the container up.
 * `docker-compose down
-  docker volume rm as_ti_mysqldata` to wipe up database and remove applied migrations.
-   To start the docker container, run the `docker-compose up`.
+  docker volume rm as_ti_mysqldata` to wipe up a database and remove applied migrations.
+  To start the docker container, run the `docker-compose up`.
 * Run the application with `./start.sh` command from project root. or, if you want to run it from IDE, please set
   environment variables by executing command from start.sh on your terminal
 
 #### Tools
-  * Language used: GoLang
-  * Database Used: MySQL
+
+* Language used: GoLang
+* Database Used: MySQL
 * Design       : Domain driven design
   * Libraries Used:
     * [Gorilla/Mux](https://github.com/gorilla/mux)
@@ -110,3 +111,10 @@ curl --location 'localhost:8000/existing-user' \
 
 ```
 
+#### FEATURES
+
+###### 1. Handle password with salt mechanism
+
+* generates new salt + hashed-password on user creation.
+* on update, it also updates the salt value corresponding to user_id.
+* used database transactions for multi table update, insert.
