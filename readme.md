@@ -22,7 +22,7 @@ To run the application, you have to define the environment variables, default va
 Make the changes to your `start.sh` file for modifying default db configurations.
 * `docker-compose.yml` file. This contains the database migrations scripts. You just need to bring the container up.
 * `docker-compose down
-  docker volume rm as_ti_mysqldata` to wipe up a database and remove applied migrations.
+  docker volume rm ecommerce_mysqldata` to wipe up a database and remove applied migrations.
   To start the docker container, run the `docker-compose up`.
 * Run the application with `./start.sh` command from project root. or, if you want to run it from IDE, please set
   environment variables by executing command from start.sh on your terminal
