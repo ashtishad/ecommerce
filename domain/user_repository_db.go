@@ -72,7 +72,7 @@ func (d UserRepositoryDB) Save(user User, salt string) (User, error) {
 		userID = int(id)
 
 		// insert the salt into the user_salts table with the corresponding user ID
-		_, err = tx.Exec(sqlInsertUserIDSalt, userID, salt)
+		_, err = tx.Exec(sqlInsertUserIDSalt, userID, salt, salt)
 		if err != nil {
 			tx.Rollback()
 			return User{}, err
@@ -140,23 +140,4 @@ func (d UserRepositoryDB) isUserExist(email string) (bool, error) {
 		return false, err
 	}
 	return exists != 0, nil
-}
-
-// findUserByID takes userId and returns a single user's record
-// returns error if internal server error happened.
-// useful in updating user where we don't know the id beforehand.
-func (d UserRepositoryDB) findUserByEmail(email string) (User, error) {
-	row := d.db.QueryRow(sqlFindUserByEmail, email)
-
-	var user User
-	err := row.Scan(&user.UserID, &user.UserUUID, &user.Email, &user.PasswordHash, &user.FullName, &user.Phone, &user.SignUpOption, &user.Status, &user.CreatedAt, &user.UpdatedAt)
-	if err != nil {
-		if errors.Is(err, sql.ErrNoRows) {
-			//d.l.Println(err.Error())
-			return User{}, err
-		}
-		return User{}, fmt.Errorf("error scanning user data: %v", err)
-	}
-
-	return user, nil
 }
