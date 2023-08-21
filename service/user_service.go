@@ -23,6 +23,10 @@ func NewUserService(repository domain.UserRepository) DefaultUserService {
 // then Calls the repository to save(create/update) the new user, get the user model if everything okay, otherwise returns error
 // Finally returns UserResponseDTO.
 func (service DefaultUserService) NewUser(request domain.NewUserRequestDTO) (*domain.UserResponseDTO, error) {
+	if err := validateCreateUserInput(request); err != nil {
+		return nil, err
+	}
+
 	salt, err := hashpassword.GenerateSalt()
 	if err != nil {
 		return nil, err
@@ -59,6 +63,10 @@ func (service DefaultUserService) NewUser(request domain.NewUserRequestDTO) (*do
 }
 
 func (service DefaultUserService) UpdateUser(request domain.UpdateUserRequestDTO) (*domain.UserResponseDTO, error) {
+	if err := validateUpdateUserInput(request); err != nil {
+		return nil, err
+	}
+
 	user := domain.User{
 		UserUUID: request.UserUUID,
 		Email:    request.Email,
@@ -89,6 +97,10 @@ func (service DefaultUserService) UpdateUser(request domain.UpdateUserRequestDTO
 // ExistingUser calls the repository to save the new user, get the user model if everything okay, otherwise returns error
 // Finally converts to UserResponseDTO.
 func (service DefaultUserService) ExistingUser(request domain.ExistingUserRequestDTO) (*domain.UserResponseDTO, error) {
+	if err := validateExistingUserInput(request); err != nil {
+		return nil, err
+	}
+
 	existingUser, err := service.repo.FindExisting(request.Email, request.Password)
 	if err != nil {
 		return nil, err
