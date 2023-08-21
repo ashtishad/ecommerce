@@ -60,7 +60,7 @@ func (us *UserHandlers) updateUserHandler(w http.ResponseWriter, r *http.Request
 	userResponse, err := us.service.UpdateUser(updateUserRequest)
 	if err != nil {
 		us.l.Println(err.Error())
-		writeResponse(w, http.StatusInternalServerError, map[string]string{"error": "internal server error"})
+		writeResponse(w, http.StatusInternalServerError, map[string]string{"error": err.Error()})
 		return
 	}
 
