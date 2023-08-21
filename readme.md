@@ -88,7 +88,7 @@ Backend verifies the token
 ###### Create a user
 
 ```
-curl --location 'localhost:8000/user' \
+curl --location 'localhost:8000/users' \
 --header 'Content-Type: application/json' \
 --data-raw '{"email":"keanu_reeves@gmail.com","full_name":"Keanu Reeves","password":"secrpsswrd","phone":"1234567890","sign_up_option":"general"}'
 ```
@@ -96,9 +96,15 @@ curl --location 'localhost:8000/user' \
 ###### Update a user
 
 ```
-curl --location 'localhost:8000/user' \
+curl --location --request PUT 'localhost:8000/users/{user_id}' \
 --header 'Content-Type: application/json' \
---data-raw '{"email":"keanu_reeves@gmail.com","full_name":"John Wick","password":"secrpsswrd","phone":"1234567890","sign_up_option":"general"}'
+--data-raw '{
+	"email": "keanu_reeves@gmail.com",
+	"full_name": "John Wick",
+    "phone": "1234567890"
+	
+}
+'
 ```
 
 ###### Check Existing User by Email and Password
