@@ -8,4 +8,5 @@ type UserRepository interface {
 	Update(user User) (User, error)                           // update(unique:uuid)
 	findUserByID(userID int) (User, error)
 	findUserByUUID(userUUID string) (User, error) // helper needed in update
+	isUserExist(email string) (bool, error)
 }

@@ -19,29 +19,41 @@ func NewUserRepositoryDB(dbClient *sql.DB, l *log.Logger) UserRepositoryDB {
 }
 
 // Create is responsible for creating user and salt from fields provided in domain.NewUserRequestDTO
-// return internal server error if some error occurs in database side.
+// first checks user exists, then start the transaction, then goes to user creation,
+// returns internal server error if some error occurs in database side.
 func (d UserRepositoryDB) Create(user User, salt string) (User, error) {
+	exists, err := d.isUserExist(user.Email)
+	if err != nil {
+		d.l.Printf("unexpected error on checking user exists: %s", err.Error())
+		return User{}, err
+	}
+	if exists {
+		return User{}, fmt.Errorf("user already exists with this email: %s", user.Email)
+	}
+
 	tx, err := d.db.Begin()
 	if err != nil {
 		return User{}, err
 	}
+	defer func() {
+		if err != nil {
+			tx.Rollback()
+		}
+	}()
 
 	result, err := tx.ExecContext(context.Background(), sqlInsertUser, user.Email, user.PasswordHash, user.FullName, user.Phone, user.SignUpOption)
 	if err != nil {
-		tx.Rollback()
-		return User{}, fmt.Errorf("error creating user")
+		return User{}, fmt.Errorf("error creating user: %w", err)
 	}
 
 	id, err := result.LastInsertId()
 	if err != nil || id == 0 {
-		tx.Rollback()
-		return User{}, fmt.Errorf("error getting last inserted user ID: %v", err)
+		return User{}, fmt.Errorf("error getting last inserted user ID: %w", err)
 	}
 	userID := int(id)
 
 	_, err = tx.Exec(sqlInsertUserIDSalt, userID, salt)
 	if err != nil {
-		tx.Rollback()
 		return User{}, err
 	}
 
@@ -58,6 +70,18 @@ func (d UserRepositoryDB) Update(user User) (User, error) {
 	existingUser, err := d.findUserByUUID(user.UserUUID)
 	if err != nil {
 		return User{}, err
+	}
+
+	// if a user wants to update the email, check user already exists with
+	// the updated email or not
+	if existingUser.Email != user.Email {
+		exists, err := d.isUserExist(user.Email)
+		if err != nil {
+			return User{}, err
+		}
+		if exists {
+			return User{}, fmt.Errorf("user already exist with email : %s", existingUser.Email)
+		}
 	}
 
 	_, err = d.db.Exec(sqlUpdateUser, user.Email, existingUser.PasswordHash, user.FullName, user.Phone, existingUser.SignUpOption, existingUser.UserID)
@@ -136,4 +160,15 @@ func (d UserRepositoryDB) findUserByUUID(userUUID string) (User, error) {
 	}
 
 	return user, nil
+}
+
+// isUserExist just for quick checking user exists or not
+func (d UserRepositoryDB) isUserExist(email string) (bool, error) {
+	var exists int
+	query := "SELECT EXISTS(SELECT 1 FROM users WHERE email = ?) as user_exists"
+	err := d.db.QueryRow(query, email).Scan(&exists)
+	if err != nil && !errors.Is(err, sql.ErrNoRows) {
+		return false, err
+	}
+	return exists != 0, nil
 }
