@@ -43,22 +43,25 @@ Make the changes to your `start.sh` file for modifying default db configurations
 ├── cmd
 │   └── app
 │       └── app.go                  <-- Define routes, logger setup, wire up handler, start server
-│       ├── app_helpers.go          <-- Sanity check, validate input, writeResponse
+│       ├── app_helpers.go          <-- Sanity check, writeResponse
 │       ├── app_helpers_test.go     <-- Unit tests of Sanity check, validate input, writeResponse
 │       └── db_connection.go        <-- MySQL db connection with dsn
 │       └── handlers.go             <-- User handlers for app endpoints
 │       └── google_auth_handlers.go <-- Google auth handlers for app endpoints
 ├── domain
-│     └── user.go               <-- User struct based on database schema
-│     ├── user_dto.go           <-- User level data with hiding sensitive fields
-│     ├── user_repository.go    <-- Includes core repository interface
-│     └── user_repository_db.go <-- Repository interface implementation with db
-│     └── user_sql_queries.go   <-- SQL queries written seperately here
-├── migrations                  <-- Database schema migrations scripts
-├── docker-compose.yml          <-- Docker setup
-├── start.sh                    <-- Builds app with exporting environment variables
-├── readme.md                   <-- Self explanetory
-├── main.go                     <-- Self explanetory
+│     └── user.go                   <-- User struct based on database schema
+│     ├── user_dto.go               <-- User level data with hiding sensitive fields
+│     ├── user_repository.go        <-- Includes core repository interface
+│     └── user_repository_db.go     <-- Repository interface implementation with db
+│     └── user_sql_queries.go       <-- SQL queries written seperately here
+├── service   
+│     └── user_service.go           <-- Input validation, generate salt,hash pass, covert dto to domain and vice versa
+│     └── service_helpers.go.go     <-- User struct based on database schema
+├── migrations                      <-- Database schema migrations scripts
+├── docker-compose.yml              <-- Docker setup
+├── start.sh                        <-- Builds app with exporting environment variables
+├── readme.md                       <-- Self explanetory
+├── main.go                         <-- Self explanetory
 
 ```
 
