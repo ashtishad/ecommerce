@@ -82,7 +82,7 @@ func (gh *GoogleAuthHandler) googleCallbackHandler(w http.ResponseWriter, r *htt
 		return
 	}
 
-	createUserResp, err := http.Post("http://localhost:8000/user", "application/json", bytes.NewBuffer(jsonValue))
+	createUserResp, err := http.Post("http://localhost:8000/users", "application/json", bytes.NewBuffer(jsonValue))
 	if err != nil {
 		gh.l.Println("couldn't get createUserResp")
 		writeResponse(w, http.StatusInternalServerError, map[string]string{"error": "internal server error"})

@@ -7,6 +7,7 @@ import (
 
 type UserService interface {
 	NewUser(request domain.NewUserRequestDTO) (*domain.UserResponseDTO, error)
+	UpdateUser(request domain.UpdateUserRequestDTO) (*domain.UserResponseDTO, error)
 	ExistingUser(request domain.ExistingUserRequestDTO) (*domain.UserResponseDTO, error)
 }
 
@@ -38,7 +39,7 @@ func (service DefaultUserService) NewUser(request domain.NewUserRequestDTO) (*do
 		Status:       "active",
 	}
 
-	createdUser, err := service.repo.Save(user, salt)
+	createdUser, err := service.repo.Create(user, salt)
 	if err != nil {
 		return nil, err
 	}
@@ -52,6 +53,34 @@ func (service DefaultUserService) NewUser(request domain.NewUserRequestDTO) (*do
 		Status:       createdUser.Status,
 		CreatedAt:    createdUser.CreatedAt,
 		UpdatedAt:    createdUser.UpdatedAt,
+	}
+
+	return userResponseDTO, nil
+}
+
+func (service DefaultUserService) UpdateUser(request domain.UpdateUserRequestDTO) (*domain.UserResponseDTO, error) {
+	user := domain.User{
+		UserUUID: request.UserUUID,
+		Email:    request.Email,
+		FullName: request.FullName,
+		Phone:    request.Phone,
+		Status:   "active",
+	}
+
+	updatedUser, err := service.repo.Update(user)
+	if err != nil {
+		return nil, err
+	}
+
+	userResponseDTO := &domain.UserResponseDTO{
+		UserUUID:     updatedUser.UserUUID,
+		Email:        updatedUser.Email,
+		FullName:     updatedUser.FullName,
+		Phone:        updatedUser.Phone,
+		SignUpOption: updatedUser.SignUpOption,
+		Status:       updatedUser.Status,
+		CreatedAt:    updatedUser.CreatedAt,
+		UpdatedAt:    updatedUser.UpdatedAt,
 	}
 
 	return userResponseDTO, nil

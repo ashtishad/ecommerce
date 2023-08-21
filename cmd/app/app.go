@@ -35,9 +35,13 @@ func Start() {
 
 	// define routes
 	r.
-		HandleFunc("/user", uh.createUserHandler).
+		HandleFunc("/users", uh.createUserHandler).
 		Methods(http.MethodPost).
 		Name("Create User")
+	r.
+		HandleFunc("/users/{user_id}", uh.updateUserHandler).
+		Methods(http.MethodPut).
+		Name("Update User")
 
 	r.
 		HandleFunc("/existing-user", uh.existingUserHandler).

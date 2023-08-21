@@ -74,6 +74,30 @@ func validateCreateUserInput(input domain.NewUserRequestDTO) error {
 	return nil
 }
 
+func validateUpdateUserInput(input domain.UpdateUserRequestDTO) error {
+	userUUIDRegex := `^[a-fA-F0-9]{8}-[a-fA-F0-9]{4}-[1-5][a-fA-F0-9]{3}-[89abAB][a-fA-F0-9]{3}-[a-fA-F0-9]{12}$`
+	if matched := regexp.MustCompile(userUUIDRegex).MatchString(input.UserUUID); !matched {
+		return fmt.Errorf("invalid uuid, you entered %s", input.UserUUID)
+	}
+
+	emailRegex := `^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$`
+	if matched := regexp.MustCompile(emailRegex).MatchString(input.Email); !matched {
+		return fmt.Errorf("invalid email, you entered %s", input.Email)
+	}
+
+	fullNameRegex := `^[a-zA-Z\s]+$`
+	if matched := regexp.MustCompile(fullNameRegex).MatchString(input.FullName); !matched {
+		return fmt.Errorf("full name can only contain letters and spaces, you entered : %s", input.FullName)
+	}
+
+	phoneRegex := `^\d{10,15}$`
+	if matched := regexp.MustCompile(phoneRegex).MatchString(input.Phone); !matched {
+		return fmt.Errorf("phone must contain 10 to 15 digits, you entered: %s", input.Phone)
+	}
+
+	return nil
+}
+
 // validateExistingUserInput validates the input for creating a new user.
 //   - Email: Must consist of alphanumeric characters, dots, underscores, percent signs, plus signs,
 //     and dashes before the @ symbol.
