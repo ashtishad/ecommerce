@@ -29,12 +29,6 @@ func (us *UserHandlers) createUserHandler(w http.ResponseWriter, r *http.Request
 		return
 	}
 
-	if err := validateCreateUserInput(newUserRequest); err != nil {
-		us.l.Println(err.Error())
-		writeResponse(w, http.StatusBadRequest, map[string]string{"error": err.Error()})
-		return
-	}
-
 	userResponse, err := us.service.NewUser(newUserRequest)
 	if err != nil {
 		us.l.Println(err.Error())
@@ -62,14 +56,7 @@ func (us *UserHandlers) updateUserHandler(w http.ResponseWriter, r *http.Request
 		writeResponse(w, http.StatusBadRequest, map[string]string{"error": "bad request"})
 		return
 	}
-
 	updateUserRequest.UserUUID = UserUUID
-	if err := validateUpdateUserInput(updateUserRequest); err != nil {
-		us.l.Println(err.Error())
-		writeResponse(w, http.StatusBadRequest, map[string]string{"error": err.Error()})
-		return
-	}
-
 	userResponse, err := us.service.UpdateUser(updateUserRequest)
 	if err != nil {
 		us.l.Println(err.Error())
@@ -90,12 +77,6 @@ func (us *UserHandlers) existingUserHandler(w http.ResponseWriter, r *http.Reque
 	var existingUserRequest domain.ExistingUserRequestDTO
 	err := json.NewDecoder(r.Body).Decode(&existingUserRequest)
 	if err != nil {
-		us.l.Println(err.Error())
-		writeResponse(w, http.StatusBadRequest, map[string]string{"error": err.Error()})
-		return
-	}
-
-	if err := validateExistingUserInput(existingUserRequest); err != nil {
 		us.l.Println(err.Error())
 		writeResponse(w, http.StatusBadRequest, map[string]string{"error": err.Error()})
 		return
