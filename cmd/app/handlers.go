@@ -1,10 +1,9 @@
 package app
 
 import (
-	"encoding/json"
 	"github.com/ashtishad/ecommerce/domain"
 	"github.com/ashtishad/ecommerce/service"
-	"github.com/gorilla/mux"
+	"github.com/gin-gonic/gin"
 	"log"
 	"net/http"
 )
@@ -14,80 +13,76 @@ type UserHandlers struct {
 	l       *log.Logger
 }
 
-// createUserHandler decodes the user request, returns bad request error if failed to decode json
-// then validates user data using regex,
+// createUserHandler handles the creation of a user if user not exists.
+// It decodes the user request, returns bad request error if failed to decode json,
 // then calls the service method to create a new user,
-// finally write the response data and correct http status code.
-func (us *UserHandlers) createUserHandler(w http.ResponseWriter, r *http.Request) {
+// finally write the response data and correct HTTP status code.
+func (us *UserHandlers) createUserHandler(c *gin.Context) {
 	us.l.Println("Handling POST request on /user")
 
 	var newUserRequest domain.NewUserRequestDTO
-	err := json.NewDecoder(r.Body).Decode(&newUserRequest)
-	if err != nil {
+	if err := c.ShouldBindJSON(&newUserRequest); err != nil {
 		us.l.Println(err.Error())
-		writeResponse(w, http.StatusBadRequest, map[string]string{"error": "bad request"})
+		c.JSON(http.StatusBadRequest, gin.H{"error": "bad request"})
 		return
 	}
 
 	userResponse, err := us.service.NewUser(newUserRequest)
 	if err != nil {
 		us.l.Println(err.Error())
-		writeResponse(w, http.StatusInternalServerError, map[string]string{"error": err.Error()})
+		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
 	}
 
-	writeResponse(w, http.StatusOK, userResponse)
+	c.JSON(http.StatusOK, userResponse)
 }
 
-// updateUserHandler decodes the user request, returns bad request error if failed to decode json
-// then validates user data using regex,
-// then calls the service method to create a new user,
-// finally write the response data and correct http status code.
-func (us *UserHandlers) updateUserHandler(w http.ResponseWriter, r *http.Request) {
-	us.l.Println("Handling POST request on /user")
+// updateUserHandler handles the updating of a user.
+// It decodes the user request, returns bad request error if failed to decode json,
+// then calls the service method to update the user,
+// finally write the response data and correct HTTP status code.
+func (us *UserHandlers) updateUserHandler(c *gin.Context) {
+	us.l.Println("Handling PUT request on /user")
 
-	vars := mux.Vars(r)
-	UserUUID := vars["user_id"]
+	UserUUID := c.Param("user_id")
 
 	var updateUserRequest domain.UpdateUserRequestDTO
-	err := json.NewDecoder(r.Body).Decode(&updateUserRequest)
-	if err != nil {
+	if err := c.ShouldBindJSON(&updateUserRequest); err != nil {
 		us.l.Println(err.Error())
-		writeResponse(w, http.StatusBadRequest, map[string]string{"error": "bad request"})
+		c.JSON(http.StatusBadRequest, gin.H{"error": "bad request"})
 		return
 	}
 	updateUserRequest.UserUUID = UserUUID
 	userResponse, err := us.service.UpdateUser(updateUserRequest)
 	if err != nil {
 		us.l.Println(err.Error())
-		writeResponse(w, http.StatusInternalServerError, map[string]string{"error": err.Error()})
+		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
 	}
 
-	writeResponse(w, http.StatusOK, userResponse)
+	c.JSON(http.StatusOK, userResponse)
 }
 
-// existingUserHandler decodes the existing user request, returns bad request error if failed to decode json.
-// then validates user's email and password data using regex,
-// then calls the service method to get existing user,
-// finally write the response data and correct http status code
-func (us *UserHandlers) existingUserHandler(w http.ResponseWriter, r *http.Request) {
+// existingUserHandler handles the retrieval of an existing user.
+// It decodes the existing user request, returns bad request error if failed to decode json,
+// then calls the service method to get the existing user,
+// finally write the response data and correct HTTP status code.
+func (us *UserHandlers) existingUserHandler(c *gin.Context) {
 	us.l.Println("Handling GET request on /user")
 
 	var existingUserRequest domain.ExistingUserRequestDTO
-	err := json.NewDecoder(r.Body).Decode(&existingUserRequest)
-	if err != nil {
+	if err := c.ShouldBindJSON(&existingUserRequest); err != nil {
 		us.l.Println(err.Error())
-		writeResponse(w, http.StatusBadRequest, map[string]string{"error": err.Error()})
+		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
 	}
 
 	userResponse, err := us.service.ExistingUser(existingUserRequest)
 	if err != nil {
 		us.l.Println(err.Error())
-		writeResponse(w, http.StatusInternalServerError, map[string]string{"error": err.Error()})
+		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
 	}
 
-	writeResponse(w, http.StatusOK, userResponse)
+	c.JSON(http.StatusOK, userResponse)
 }
