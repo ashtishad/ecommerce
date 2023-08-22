@@ -2,19 +2,23 @@ package app
 
 import (
 	"database/sql"
+	"errors"
 	"fmt"
 	"github.com/ashtishad/ecommerce/domain"
+	"github.com/ashtishad/ecommerce/pkg/ginconf"
 	"github.com/ashtishad/ecommerce/service"
-	"github.com/gorilla/mux"
+	"github.com/gin-gonic/gin"
 	"log"
 	"net/http"
 	"os"
+	"time"
 )
 
 func Start() {
 	sanityCheck()
 
-	r := mux.NewRouter()
+	gin.SetMode(gin.ReleaseMode)
+	var r = gin.New()
 
 	// initiated logger, dependency injection, create once, inject it where needed
 	l := log.New(os.Stdout, "users-api ", log.LstdFlags)
@@ -33,31 +37,52 @@ func Start() {
 	uh := UserHandlers{service.NewUserService(userRepositoryDB), l}
 	gh := GoogleAuthHandler{l: l}
 
-	// define routes
-	r.
-		HandleFunc("/users", uh.createUserHandler).
-		Methods(http.MethodPost).
-		Name("Create User")
-	r.
-		HandleFunc("/users/{user_id}", uh.updateUserHandler).
-		Methods(http.MethodPut).
-		Name("Update User")
+	// Server Config
+	srv := &http.Server{
+		Addr:           fmt.Sprintf(":%s", os.Getenv("SERVER_PORT")),
+		Handler:        r,
+		IdleTimeout:    100 * time.Second,
+		ReadTimeout:    10 * time.Second,
+		WriteTimeout:   10 * time.Second,
+		MaxHeaderBytes: 1 << 20,
+	}
 
-	r.
-		HandleFunc("/existing-user", uh.existingUserHandler).
-		Methods(http.MethodPost, http.MethodGet).
-		Name("Existing User")
-	r.
-		HandleFunc("/login", gh.startGoogleLoginHandler).
-		Methods(http.MethodPost, http.MethodGet).
-		Name("Google Login")
-	r.
-		HandleFunc("/callback", gh.googleCallbackHandler).
-		Methods(http.MethodPost, http.MethodGet).
-		Name("Google Callback")
+	// route url mappings
+	setRouteMappings(r, uh, gh)
 
-	// starting server
-	address := os.Getenv("SERVER_ADDRESS")
-	port := os.Getenv("SERVER_PORT")
-	log.Fatal(http.ListenAndServe(fmt.Sprintf("%s:%s", address, port), r))
+	// custom logger middleware
+	r.Use(gin.LoggerWithFormatter(ginconf.Logger))
+
+	// custom recovery middleware
+	r.Use(gin.CustomRecovery(ginconf.Recover))
+
+	// start server
+	go func() {
+		if err := srv.ListenAndServe(); err != nil && !errors.Is(err, http.ErrServerClosed) {
+			l.Fatalf("could not start server: %v\n", err)
+		}
+	}()
+
+	// graceful shutdown
+	ginconf.GracefulShutdown(srv)
+}
+
+func setRouteMappings(r *gin.Engine, uh UserHandlers, gh GoogleAuthHandler) {
+	// Group routes related to users
+	userRoutes := r.Group("/users")
+	{
+		userRoutes.POST("", uh.createUserHandler)
+		userRoutes.PUT("/:user_id", uh.updateUserHandler)
+		userRoutes.POST("/existing-user", uh.existingUserHandler)
+		userRoutes.GET("/existing-user", uh.existingUserHandler)
+	}
+
+	// Group routes related to Google authentication
+	// http://localhost:8000/google-auth/login
+	googleAuthRoutes := r.Group("/google-auth")
+	{
+		googleAuthRoutes.GET("/login", gh.StartGoogleLoginHandler)
+		googleAuthRoutes.POST("/callback", gh.GoogleCallbackHandler)
+		googleAuthRoutes.GET("/callback", gh.GoogleCallbackHandler)
+	}
 }

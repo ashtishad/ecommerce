@@ -3,6 +3,7 @@ package app
 import (
 	"bytes"
 	"encoding/json"
+	"github.com/gin-gonic/gin"
 	"golang.org/x/oauth2"
 	"golang.org/x/oauth2/google"
 	"io"
@@ -11,6 +12,7 @@ import (
 	"os"
 )
 
+// GoogleAuthHandler handles Google authentication.
 type GoogleAuthHandler struct {
 	l *log.Logger
 }
@@ -23,47 +25,47 @@ var oauth2Config = &oauth2.Config{
 	Endpoint:     google.Endpoint,
 }
 
-// startGoogleLoginHandler starts a Google auth process, checks if google auth client id and secret is set
+// StartGoogleLoginHandler starts a Google auth process, checks if google auth client id and secret is set
 // gets the auth url, and redirects to the callback url
-func (gh *GoogleAuthHandler) startGoogleLoginHandler(w http.ResponseWriter, r *http.Request) {
+func (gh *GoogleAuthHandler) StartGoogleLoginHandler(c *gin.Context) {
 	if oauth2Config.ClientID == "" || oauth2Config.ClientSecret == "" || oauth2Config.RedirectURL == "" {
 		gh.l.Printf("missing %s or secret %s or redirect url %s", oauth2Config.ClientID, oauth2Config.ClientSecret, oauth2Config.RedirectURL)
 		return
 	}
 	authURL := oauth2Config.AuthCodeURL("", oauth2.AccessTypeOffline)
-	http.Redirect(w, r, authURL, http.StatusSeeOther)
+	c.Redirect(http.StatusSeeOther, authURL)
 }
 
-// googleCallbackHandler takes the code from Google, generates token, validates it
+// GoogleCallbackHandler takes the code from Google, generates token, validates it
 // gets the client, gets data(only name and email) from Google, and generates random for rest of the fields
 // sends post request to /user endpoint for user creation or update
 // sign_up_option will be set as "google" in database and finally returns the response
-func (gh *GoogleAuthHandler) googleCallbackHandler(w http.ResponseWriter, r *http.Request) {
-	code := r.URL.Query().Get("code")
+func (gh *GoogleAuthHandler) GoogleCallbackHandler(c *gin.Context) {
+	code := c.DefaultQuery("code", "")
 	if code == "" {
-		writeResponse(w, http.StatusBadRequest, map[string]string{"error": "bad request"})
+		c.JSON(http.StatusBadRequest, gin.H{"error": "bad request"})
 		return
 	}
 
-	token, err := oauth2Config.Exchange(r.Context(), code)
+	token, err := oauth2Config.Exchange(c, code)
 	if err != nil {
 		gh.l.Println("could not convert authorization code into a token")
-		writeResponse(w, http.StatusInternalServerError, map[string]string{"error": "internal server error"})
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "internal server error"})
 		return
 	}
 
-	client := oauth2Config.Client(r.Context(), token)
+	client := oauth2Config.Client(c, token)
 	resp, err := client.Get("https://www.googleapis.com/oauth2/v3/userinfo")
 	if err != nil {
 		gh.l.Println("couldn't get user info from google")
-		writeResponse(w, http.StatusInternalServerError, map[string]string{"error": "internal server error"})
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "internal server error"})
 		return
 	}
 	defer resp.Body.Close()
 
 	var profile map[string]interface{}
 	if err := json.NewDecoder(resp.Body).Decode(&profile); err != nil {
-		writeResponse(w, http.StatusBadRequest, map[string]string{"error": "bad request"})
+		c.JSON(http.StatusBadRequest, gin.H{"error": "bad request"})
 		return
 	}
 
@@ -77,27 +79,23 @@ func (gh *GoogleAuthHandler) googleCallbackHandler(w http.ResponseWriter, r *htt
 
 	jsonValue, err := json.Marshal(jsonData)
 	if err != nil {
-		//gh.l.Println(err.Error())
-		writeResponse(w, http.StatusInternalServerError, map[string]string{"error": "internal server error"})
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "internal server error"})
 		return
 	}
 
 	createUserResp, err := http.Post("http://localhost:8000/users", "application/json", bytes.NewBuffer(jsonValue))
 	if err != nil {
 		gh.l.Println("couldn't get createUserResp")
-		writeResponse(w, http.StatusInternalServerError, map[string]string{"error": "internal server error"})
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "internal server error"})
 		return
 	}
 	defer createUserResp.Body.Close()
 
 	createUserRespBody, err := io.ReadAll(createUserResp.Body)
 	if err != nil {
-		writeResponse(w, http.StatusInternalServerError, map[string]string{"error": "internal server error"})
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "internal server error"})
 		return
 	}
 
-	w.WriteHeader(createUserResp.StatusCode)
-	if _, err := w.Write(createUserRespBody); err != nil {
-		return
-	}
+	c.Data(createUserResp.StatusCode, "application/json", createUserRespBody)
 }
