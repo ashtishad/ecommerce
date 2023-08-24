@@ -4,9 +4,10 @@ import (
 	"database/sql"
 	"errors"
 	"fmt"
-	"github.com/ashtishad/ecommerce/domain"
-	"github.com/ashtishad/ecommerce/pkg/ginconf"
-	"github.com/ashtishad/ecommerce/service"
+	"github.com/ashtishad/ecommerce/lib/db_connections"
+	"github.com/ashtishad/ecommerce/users-api/internal/domain"
+	"github.com/ashtishad/ecommerce/users-api/internal/service"
+	"github.com/ashtishad/ecommerce/users-api/pkg/ginconf"
 	"github.com/gin-gonic/gin"
 	"log"
 	"net/http"
@@ -14,7 +15,7 @@ import (
 	"time"
 )
 
-func Start() {
+func StartUsersAPI() {
 	sanityCheck()
 
 	gin.SetMode(gin.ReleaseMode)
@@ -24,7 +25,7 @@ func Start() {
 	l := log.New(os.Stdout, "users-api ", log.LstdFlags)
 
 	// database connection config
-	conn := getDbClient()
+	conn := db_connections.GetMySqlDBClient()
 	defer func(conn *sql.DB) {
 		err := conn.Close()
 		if err != nil {
@@ -35,7 +36,6 @@ func Start() {
 	// wire up the handler
 	userRepositoryDB := domain.NewUserRepositoryDB(conn, l)
 	uh := UserHandlers{service.NewUserService(userRepositoryDB), l}
-	gh := GoogleAuthHandler{l: l}
 
 	// Server Config
 	srv := &http.Server{
@@ -48,7 +48,7 @@ func Start() {
 	}
 
 	// route url mappings
-	setRouteMappings(r, uh, gh)
+	setUsersApiRoutes(r, uh)
 
 	// custom logger middleware
 	r.Use(gin.LoggerWithFormatter(ginconf.Logger))
@@ -67,7 +67,7 @@ func Start() {
 	ginconf.GracefulShutdown(srv)
 }
 
-func setRouteMappings(r *gin.Engine, uh UserHandlers, gh GoogleAuthHandler) {
+func setUsersApiRoutes(r *gin.Engine, uh UserHandlers) {
 	// Group routes related to users
 	userRoutes := r.Group("/users")
 	{
@@ -75,14 +75,5 @@ func setRouteMappings(r *gin.Engine, uh UserHandlers, gh GoogleAuthHandler) {
 		userRoutes.PUT("/:user_id", uh.updateUserHandler)
 		userRoutes.POST("/existing-user", uh.existingUserHandler)
 		userRoutes.GET("/existing-user", uh.existingUserHandler)
-	}
-
-	// Group routes related to Google authentication
-	// http://localhost:8000/google-auth/login
-	googleAuthRoutes := r.Group("/google-auth")
-	{
-		googleAuthRoutes.GET("/login", gh.StartGoogleLoginHandler)
-		googleAuthRoutes.POST("/callback", gh.GoogleCallbackHandler)
-		googleAuthRoutes.GET("/callback", gh.GoogleCallbackHandler)
 	}
 }

@@ -3,7 +3,7 @@ package service
 import (
 	"errors"
 	"fmt"
-	"github.com/ashtishad/ecommerce/domain"
+	"github.com/ashtishad/ecommerce/users-api/internal/domain"
 	"regexp"
 )
 

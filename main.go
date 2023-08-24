@@ -1,7 +1,9 @@
 package main
 
-import "github.com/ashtishad/ecommerce/cmd/app"
+import (
+	"github.com/ashtishad/ecommerce/users-api/cmd/app"
+)
 
 func main() {
-	app.Start()
+	app.StartUsersAPI()
 }

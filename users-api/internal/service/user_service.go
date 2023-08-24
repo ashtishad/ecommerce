@@ -1,8 +1,8 @@
 package service
 
 import (
-	"github.com/ashtishad/ecommerce/domain"
-	"github.com/ashtishad/ecommerce/pkg/hashpassword"
+	"github.com/ashtishad/ecommerce/users-api/internal/domain"
+	"github.com/ashtishad/ecommerce/users-api/pkg/hashpassword"
 )
 
 type UserService interface {

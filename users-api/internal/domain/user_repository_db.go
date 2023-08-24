@@ -5,7 +5,7 @@ import (
 	"database/sql"
 	"errors"
 	"fmt"
-	"github.com/ashtishad/ecommerce/pkg/hashpassword"
+	"github.com/ashtishad/ecommerce/users-api/pkg/hashpassword"
 	"log"
 )
 

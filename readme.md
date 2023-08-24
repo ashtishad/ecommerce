@@ -1,5 +1,19 @@
 ## Ecommerce Microservice
 
+#### Microservice List
+
+| Microservices      | Design Decisions            | Status             |
+|--------------------|-----------------------------|--------------------|
+| Users-API          | Go, RDBMS(PostgreSQL/MySQL) | Completed          |
+| Auth-API           | JWT, Google Auth            | Ongoing            |
+| Product-API        |                             | Pending            |
+| Order-API          |                             | Pending            |
+| Cart-API           |                             | Pending            |
+| Payment-API        |                             | Pending            |
+| Review-API         |                             | Pending            |
+| Customer-Care-API  |                             | Pending            |
+
+
 #### Environment Setup
 
 ###### Clone using ssh protocol `git clone git@github.com:ashtishad/ecommerce.git`
@@ -7,7 +21,7 @@
 To run the application, you have to define the environment variables, default values of the variables are defined inside `start.sh`
 
 - SERVER_ADDRESS    `[IP Address of the machine]` : `localhost`
-- SERVER_PORT       `[Port of the machine]` : `8000` `only 5000,5001,8000,8001 are allowed for google auth callback`
+- SERVER_PORT       `[Port of the machine]` : `8000` 
 - DB_USER           `[Database username]` : `root`
 - DB_PASSWD         `[Database password]`: `root`
 - DB_ADDR           `[IP address of the database]` : `localhost`
@@ -40,31 +54,15 @@ To run the application, you have to define the environment variables, default va
 #### Project Structure
 ```
 
-├── cmd
-│   └── app
-│       └── app.go                  <-- Define routes, logger setup, wire up handler, start server
-│       ├── app_helpers.go          <-- Sanity check, writeResponse
-│       ├── app_helpers_test.go     <-- Unit tests of Sanity check, validate input, writeResponse
-│       └── db_connection.go        <-- MySQL db connection with dsn
-│       └── handlers.go             <-- User handlers for app endpoints
-│       └── google_auth_handlers.go <-- Google auth handlers for app endpoints
-├── domain
-│     └── user.go                   <-- User struct based on database schema
-│     ├── user_dto.go               <-- User level data with hiding sensitive fields
-│     ├── user_repository.go        <-- Includes core repository interface
-│     └── user_repository_db.go     <-- Repository interface implementation with db
-│     └── user_sql_queries.go       <-- SQL queries written seperately here
-├── service   
-│     └── user_service.go           <-- Generate salt,hash pass, covert dto to domain and vice versa
-│     └── service_helpers.go.go     <-- Included user input validation
-├── migrations                      <-- Database schema migrations scripts
+├── users-api                       <-- Users API for this microservice - [Readme](https://github.com/ashtishad/ecommerce/users-api/readme.md)
 ├── docker-compose.yml              <-- Docker setup
-├── start.sh                        <-- Builds app with exporting environment variables
-├── readme.md                       <-- Self explanetory
-├── main.go                         <-- Self explanetory
+├── start.sh                        <-- Builds the whole app with exporting environment variables
+├── readme.md                       <-- Ecommerce Project Central Readme
+├── main.go                         <-- Responsible to start all server of this microservice
 
 ```
 
+##### USERS_API
 
 #### Data Flow (Hexagonal architecture)
 
@@ -108,20 +106,6 @@ curl --location 'localhost:8000/existing-user' \
 "password": "seepasword"
 }'
 
-```
-
-#### Testing Google Auth
-
-```
-1. From browser go to, localhost:port/google-auth/login, login with your google account, select/enter your gmail account.
-2. After redirecting to callback url, you will see a user created with sign_up_option= google.
-3. Please use only 8000,8001,5000,5001 ports as SERVER_PORT in environemnt varibales..
-
-
-As only backend is implemented for it, so I have skipped usual steps:
-Frontend obtains Google OAuth token
-Frontend sends OAuth token to backend
-Backend verifies the token
 ```
 
 #### Design Decisions

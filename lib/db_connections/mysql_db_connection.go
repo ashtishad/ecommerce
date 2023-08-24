@@ -1,4 +1,4 @@
-package app
+package db_connections
 
 import (
 	"database/sql"
@@ -9,8 +9,8 @@ import (
 	"time"
 )
 
-// createDSN return data source name, formats it, then db connection URL in string format
-func createDSN() string {
+// createMySqlDSN return data source name, formats it, then db connection URL in string format
+func createMySqlDSN() string {
 	dbUser := os.Getenv("DB_USER")
 	dbPasswd := os.Getenv("DB_PASSWD")
 	dbAddr := os.Getenv("DB_ADDR")
@@ -20,8 +20,8 @@ func createDSN() string {
 	return fmt.Sprintf("%s:%s@tcp(%s:%s)/%s?charset=utf8mb4&parseTime=True", dbUser, dbPasswd, dbAddr, dbPort, dbName)
 }
 
-func getDbClient() *sql.DB {
-	dataSource := createDSN()
+func GetMySqlDBClient() *sql.DB {
+	dataSource := createMySqlDSN()
 	client, err := sql.Open("mysql", dataSource)
 	if err != nil {
 		panic(err)
