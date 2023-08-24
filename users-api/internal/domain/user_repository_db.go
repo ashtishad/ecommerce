@@ -135,7 +135,7 @@ func (d UserRepositoryDB) findUserByID(userID int) (User, error) {
 	err := row.Scan(&user.UserID, &user.UserUUID, &user.Email, &user.PasswordHash, &user.FullName, &user.Phone, &user.SignUpOption, &user.Status, &user.CreatedAt, &user.UpdatedAt)
 	if err != nil {
 		if errors.Is(err, sql.ErrNoRows) {
-			//d.l.Println(err.Error())
+			// d.l.Println(err.Error())
 			return User{}, err
 		}
 		return User{}, fmt.Errorf("error scanning user data: %v", err)
@@ -153,7 +153,7 @@ func (d UserRepositoryDB) findUserByUUID(userUUID string) (User, error) {
 	err := row.Scan(&user.UserID, &user.UserUUID, &user.Email, &user.PasswordHash, &user.FullName, &user.Phone, &user.SignUpOption, &user.Status, &user.CreatedAt, &user.UpdatedAt)
 	if err != nil {
 		if errors.Is(err, sql.ErrNoRows) {
-			//d.l.Println(err.Error())
+			// d.l.Println(err.Error())
 			return User{}, err
 		}
 		return User{}, fmt.Errorf("error scanning user data: %v", err)
