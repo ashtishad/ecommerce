@@ -6,7 +6,7 @@ services:
       - "127.0.0.1:3306:3306"
     volumes:
       - mysqldata:/var/lib/mysql
-      - ./migrations:/docker-entrypoint-initdb.d
+      - ./users-api/database/migrations:/docker-entrypoint-initdb.d
     container_name: mysql
     environment:
       MYSQL_ROOT_PASSWORD: root
