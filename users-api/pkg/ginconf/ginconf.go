@@ -24,7 +24,7 @@ func GracefulShutdown(srv *http.Server) {
 	// graceful shutdown
 	log.Println("Shutting down server...")
 	if err := srv.Shutdown(ctx); err != nil {
-		log.Fatalf("Could not gracefully shutdown the server: %v\n", err)
+		log.Printf("Could not gracefully shutdown the server: %v\n", err)
 	}
 	log.Println("Server gracefully stopped")
 }
