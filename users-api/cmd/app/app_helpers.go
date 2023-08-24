@@ -1,16 +1,13 @@
 package app
 
 import (
-	"encoding/json"
-	"fmt"
 	"log"
-	"net/http"
 	"os"
 )
 
 // sanityCheck checks that all required environment variables are set.
 // if any of the required variables is not defined, it prints a log message.
-func sanityCheck() {
+func sanityCheck(l *log.Logger) {
 	envProps := []string{
 		"SERVER_ADDRESS",
 		"SERVER_PORT",
@@ -22,16 +19,7 @@ func sanityCheck() {
 	}
 	for _, k := range envProps {
 		if os.Getenv(k) == "" {
-			log.Println(fmt.Sprintf("environment variable %s not defined. Terminating application...", k))
+			l.Printf("environment variable %s not defined. Terminating application...", k)
 		}
-	}
-}
-
-// writeResponse writes api endpoint response data and correct http status code in response.
-func writeResponse(w http.ResponseWriter, code int, data interface{}) {
-	w.Header().Add("Content-Type", "application/json")
-	w.WriteHeader(code)
-	if err := json.NewEncoder(w).Encode(data); err != nil {
-		panic(err)
 	}
 }

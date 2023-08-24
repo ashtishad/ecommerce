@@ -4,7 +4,7 @@ import (
 	"database/sql"
 	"errors"
 	"fmt"
-	"github.com/ashtishad/ecommerce/lib/db_connections"
+	"github.com/ashtishad/ecommerce/users-api/database"
 	"github.com/ashtishad/ecommerce/users-api/internal/domain"
 	"github.com/ashtishad/ecommerce/users-api/internal/service"
 	"github.com/ashtishad/ecommerce/users-api/pkg/ginconf"
@@ -16,16 +16,16 @@ import (
 )
 
 func StartUsersAPI() {
-	sanityCheck()
+	// initiated logger, dependency injection, create once, inject it where needed
+	l := log.New(os.Stdout, "users-api ", log.LstdFlags)
+
+	sanityCheck(l)
 
 	gin.SetMode(gin.ReleaseMode)
 	var r = gin.New()
 
-	// initiated logger, dependency injection, create once, inject it where needed
-	l := log.New(os.Stdout, "users-api ", log.LstdFlags)
-
 	// database connection config
-	conn := db_connections.GetMySqlDBClient()
+	conn := database.GetMySqlDBClient()
 	defer func(conn *sql.DB) {
 		err := conn.Close()
 		if err != nil {

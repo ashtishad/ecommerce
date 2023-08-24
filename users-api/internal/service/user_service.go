@@ -2,6 +2,7 @@ package service
 
 import (
 	"github.com/ashtishad/ecommerce/users-api/internal/domain"
+	"github.com/ashtishad/ecommerce/users-api/pkg/constants"
 	"github.com/ashtishad/ecommerce/users-api/pkg/hashpassword"
 )
 
@@ -40,7 +41,7 @@ func (service DefaultUserService) NewUser(request domain.NewUserRequestDTO) (*do
 		FullName:     request.FullName,
 		Phone:        request.Phone,
 		SignUpOption: request.SignUpOption,
-		Status:       "active",
+		Status:       constants.UserStatusActive,
 	}
 
 	createdUser, err := service.repo.Create(user, salt)
@@ -72,7 +73,7 @@ func (service DefaultUserService) UpdateUser(request domain.UpdateUserRequestDTO
 		Email:    request.Email,
 		FullName: request.FullName,
 		Phone:    request.Phone,
-		Status:   "active",
+		Status:   constants.UserStatusActive,
 	}
 
 	updatedUser, err := service.repo.Update(user)

@@ -24,7 +24,7 @@ func GracefulShutdown(srv *http.Server) {
 	// graceful shutdown
 	log.Println("Shutting down server...")
 	if err := srv.Shutdown(ctx); err != nil {
-		log.Fatalf("Could not gracefully shutdown the server: %v\n", err)
+		log.Printf("Could not gracefully shutdown the server: %v\n", err)
 	}
 	log.Println("Server gracefully stopped")
 }
@@ -32,14 +32,14 @@ func GracefulShutdown(srv *http.Server) {
 // Logger implements logger util for gin
 func Logger(param gin.LogFormatterParams) string {
 	return fmt.Sprintf("[%s] | %s | %s | %d | %s |%s\n",
-		//param.ClientIP,
+		// param.ClientIP,
 		param.TimeStamp.Format("2006-01-02 15:04:05"),
 		param.Method,
 		param.Path,
-		//param.Request.Proto,
+		// param.Request.Proto,
 		param.StatusCode,
 		param.Latency,
-		//param.Request.UserAgent(),
+		// param.Request.UserAgent(),
 		param.ErrorMessage,
 	)
 }
