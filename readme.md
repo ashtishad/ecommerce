@@ -2,16 +2,16 @@
 
 #### Microservice List
 
-| Microservices      | Design Decisions            | Status             |
-|--------------------|-----------------------------|--------------------|
-| Users-API          | Go, RDBMS(PostgreSQL/MySQL) | Completed          |
-| Auth-API           | JWT, Google Auth            | Ongoing            |
-| Product-API        |                             | Pending            |
-| Order-API          |                             | Pending            |
-| Cart-API           |                             | Pending            |
-| Payment-API        |                             | Pending            |
-| Review-API         |                             | Pending            |
-| Customer-Care-API  |                             | Pending            |
+| Microservices      | Design Decisions            | Status             | Readme Link                                                               |
+|--------------------|-----------------------------|--------------------|---------------------------------------------------------------------------|
+| Users-API          | Go, RDBMS(PostgreSQL/MySQL) | Completed          | [Link](https://github.com/ashtishad/ecommerce/tree/main/users-api#readme) |
+| Auth-API           | JWT, Google Auth            | Ongoing            |                                                                           |
+| Product-API        |                             | Pending            |                                                                           |
+| Order-API          |                             | Pending            |                                                                           |
+| Cart-API           |                             | Pending            |                                                                           |
+| Payment-API        |                             | Pending            |                                                                           |
+| Review-API         |                             | Pending            |                                                                           |
+| Customer-Care-API  |                             | Pending            |                                                                           |
 
 
 #### Environment Setup
@@ -21,7 +21,7 @@
 To run the application, you have to define the environment variables, default values of the variables are defined inside `start.sh`
 
 - SERVER_ADDRESS    `[IP Address of the machine]` : `localhost`
-- SERVER_PORT       `[Port of the machine]` : `8000` 
+- SERVER_PORT       `[Port of the machine]` : `8000`
 - DB_USER           `[Database username]` : `root`
 - DB_PASSWD         `[Database password]`: `root`
 - DB_ADDR           `[IP address of the database]` : `localhost`
@@ -39,7 +39,7 @@ To run the application, you have to define the environment variables, default va
 * Run the application with `./start.sh` command from project root. or, if you want to run it from IDE, please set
   environment variables by executing command from start.sh on your terminal.
 * (optional) Make the Script Executable: You must give the script execute permissions before you can run it. Use the following command:
-    `chmod +x start.sh`
+  `chmod +x start.sh`
 
 #### Tools Used
 
