@@ -16,13 +16,13 @@ import (
 )
 
 func StartUsersAPI() {
-	sanityCheck()
+	// initiated logger, dependency injection, create once, inject it where needed
+	l := log.New(os.Stdout, "users-api ", log.LstdFlags)
+
+	sanityCheck(l)
 
 	gin.SetMode(gin.ReleaseMode)
 	var r = gin.New()
-
-	// initiated logger, dependency injection, create once, inject it where needed
-	l := log.New(os.Stdout, "users-api ", log.LstdFlags)
 
 	// database connection config
 	conn := database.GetMySqlDBClient()
