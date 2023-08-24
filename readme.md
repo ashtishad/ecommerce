@@ -1,6 +1,8 @@
 ## Ecommerce Microservice
 
-#### Microservice List
+### Microservice List
+
+
 
 | Microservices      | Design Decisions            | Status             | Readme Link                                                               |
 |--------------------|-----------------------------|--------------------|---------------------------------------------------------------------------|
@@ -13,6 +15,88 @@
 | Review-API         |                             | Pending            |                                                                           |
 | Customer-Care-API  |                             | Pending            |                                                                           |
 
+### Design Decisions
+
+1. Database per service pattern
+  * Separate database for each service, one service won't communicate directly to another service's database. Why?
+    * Separation of concerns (Each service to run independently).
+    * Database schema/structure of another service that might change unexpectedly won't affect another.
+    * There won't be a single point of failure would increase Site Reliability.
+    * Some services might function more efficiently with different types of DB's (sql vs nosql).
+    * Easy to scale, test, manage, maintain and audit.
+    
+2.How to exchange data between services?
+   * Asynchronous Data Communication (Event Driven). Use Event Bus to exchange data(eg: Pache Kafka/RabbitMQ/NATS). Why Async Communication?
+     * Zero dependency on other services.
+     * No need to wait for other services to be ready.
+     * Addition of new services is easy and service operations will be extremely fast.
+  * Downside? - Data duplication.
+
+
+
+###### General
+
+* Software Architecture: Hexagonal(ports and adapters).
+* Api Architecture Style: Restful API.
+* Design Pattern: Domain Driven Design.
+* Web Framework: Gin.
+* Cloud: AWS.
+* Containerization: Docker.
+* CI/CD: GitHub Actions.
+* Event Bus: Apache Kafka.
+* Relational DB Preference: PostgreSQL/MySQL.
+* Document Based/NoSQL DB: MongoDB.
+* Cache preference: Redis.
+
+###### Users-API
+
+* RDBMS: MySQL/PostgreSQL (for structured data)
+* Database Name: Users (will change it to Ecommerce)
+* Cache: Redis
+* Password Hashing: Salt
+
+###### Auth-api
+
+* Auth System: Oauth2 (JWT and Google Auth)
+* DBMS: PostgreSQL (handling secure transactions)
+* Database Name: Auth
+* Cache: Redis (to quickly retrieve tokens and session information)
+
+###### Product-API
+
+* DBMS: PostgreSQL (for relational product attributes and categories).
+* Database Name: Products.
+* Cache: Redis (for caching popular products).
+
+###### Order-API
+
+* DBMS: PostgreSQL (to store complex order relationships).
+* Database Name: Orders.
+* Cache: Redis (for caching user cart details).
+
+###### Cart-API
+
+* DBMS: MongoDB (for flexible cart structures).
+* Database Name: Carts.
+* Cache: Redis (for quick access to cart data).
+
+###### Payment-API
+
+* DBMS: PostgreSQL (secure transaction handling).
+* Database Name: Payments.
+* Cache: Redis (for caching transaction data).
+
+###### Review-API
+
+* DBMS: MongoDB (to store varied review formats)
+* Database Name: Reviews
+* Cache: Redis (for caching popular reviews)
+
+###### Customer-Care-API
+
+* DBMS: PostgreSQL (structured customer care tickets)
+* Database Name: CustomerCare
+* Cache: Redis (for quickly accessing open tickets)
 
 #### Environment Setup
 
@@ -41,28 +125,20 @@ To run the application, you have to define the environment variables, default va
 * (optional) Make the Script Executable: You must give the script execute permissions before you can run it. Use the following command:
   `chmod +x start.sh`
 
-#### Tools Used
-
-* Language used: GoLang
-* Database Used: MySQL
-* Design       : Domain driven design
-  * Libraries Used:
-    * [Gin](https://github.com/gin-gonic/gin)
-    * [Go SQL Driver](https://github.com/go-sql-driver/mysql)
-    * [Google OAuth Library](golang.org/x/oauth2/google)
 
 #### Project Structure
 ```
-
-├── users-api                       <-- Users API for this microservice - [Readme](https://github.com/ashtishad/ecommerce/users-api/readme.md)
-├── docker-compose.yml              <-- Docker setup
-├── start.sh                        <-- Builds the whole app with exporting environment variables
-├── readme.md                       <-- Ecommerce Project Central Readme
+├── assets                          <-- For project root specific static assets.
+├── lib                             <-- Common files shared between services(error library, logging, ginconfig etc)
+├── users-api                       <-- Users API microservice.
+├── auth-api                        <-- Auth API microservice.
+├── docker-compose.yml              <-- Docker setup golangci.yml
+├── golangci.yml                    <-- Config for golangci-lint. 
+├── start.sh                        <-- Builds the whole app with exporting environment variables.
 ├── main.go                         <-- Responsible to start all server of this microservice
+├── readme.md                       <-- Ecommerce Project Central Readme.
 
 ```
-
-##### USERS_API
 
 #### Data Flow (Hexagonal architecture)
 
@@ -71,7 +147,7 @@ To run the application, you have to define the environment variables, default va
     Outgoing : RepositoryDB --(Domain Object)-> Service --(DTO)-> REST Handlers --(JSON)-> Client
 
 
-#### Example Requests
+#### Example Requests(Users-API routes)
 
 ###### Create a user
 
@@ -108,13 +184,7 @@ curl --location 'localhost:8000/existing-user' \
 
 ```
 
-#### Design Decisions
 
-###### 1. Handle password with salt mechanism
-
-* generates new salt + hashed-password on user creation.
-* on update, it also updates the salt value corresponding to user_id.
-* used database transactions for multi table update, insert.
 
 
 ###### Hexagonal Architecture
