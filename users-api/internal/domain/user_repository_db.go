@@ -36,6 +36,7 @@ func (d UserRepositoryDB) Create(user User, salt string) (User, error) {
 		return User{}, err
 	}
 
+	// Why? check commit #054e1b6d4f6dcb9d988a89f83fb39fc9b50eabe4
 	defer func() {
 		if err != nil {
 			rollBackErr := tx.Rollback()

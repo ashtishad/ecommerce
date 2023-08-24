@@ -4,6 +4,7 @@ import (
 	"errors"
 	"fmt"
 	"github.com/ashtishad/ecommerce/users-api/internal/domain"
+	"github.com/ashtishad/ecommerce/users-api/pkg/constants"
 	"regexp"
 )
 
@@ -16,8 +17,7 @@ import (
 //   - Phone: Must consist only of digits and must be between 10 and 15 characters in length.
 //   - SignUpOption: Must be either 'general' or 'google'.
 func validateCreateUserInput(input domain.NewUserRequestDTO) error {
-	emailRegex := `^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$`
-	if matched := regexp.MustCompile(emailRegex).MatchString(input.Email); !matched {
+	if matched := regexp.MustCompile(constants.EmailRegex).MatchString(input.Email); !matched {
 		return fmt.Errorf("invalid email, you entered %s", input.Email)
 	}
 
@@ -25,17 +25,15 @@ func validateCreateUserInput(input domain.NewUserRequestDTO) error {
 		return errors.New("password must be at least 8 characters long")
 	}
 
-	fullNameRegex := `^[a-zA-Z\s]+$`
-	if matched := regexp.MustCompile(fullNameRegex).MatchString(input.FullName); !matched {
+	if matched := regexp.MustCompile(constants.FullNameRegex).MatchString(input.FullName); !matched {
 		return fmt.Errorf("full name can only contain letters and spaces, you entered : %s", input.FullName)
 	}
 
-	phoneRegex := `^\d{10,15}$`
-	if matched := regexp.MustCompile(phoneRegex).MatchString(input.Phone); !matched {
+	if matched := regexp.MustCompile(constants.PhoneRegex).MatchString(input.Phone); !matched {
 		return fmt.Errorf("phone must contain 10 to 15 digits, you entered: %s", input.Phone)
 	}
 
-	if input.SignUpOption != "general" && input.SignUpOption != "google" {
+	if input.SignUpOption != constants.SignupOptGeneral && input.SignUpOption != constants.SignUpOptGoogle {
 		return fmt.Errorf("sign up option must be 'general' or 'google': %s", input.SignUpOption)
 	}
 
@@ -51,23 +49,19 @@ func validateCreateUserInput(input domain.NewUserRequestDTO) error {
 //   - Phone: Must consist only of digits and must be between 10 and 15 characters in length.
 //   - User_id: Must be an uuid.
 func validateUpdateUserInput(input domain.UpdateUserRequestDTO) error {
-	userUUIDRegex := `^[a-fA-F0-9]{8}-[a-fA-F0-9]{4}-[1-5][a-fA-F0-9]{3}-[89abAB][a-fA-F0-9]{3}-[a-fA-F0-9]{12}$`
-	if matched := regexp.MustCompile(userUUIDRegex).MatchString(input.UserUUID); !matched {
+	if matched := regexp.MustCompile(constants.UUIDRegex).MatchString(input.UserUUID); !matched {
 		return fmt.Errorf("invalid uuid, you entered %s", input.UserUUID)
 	}
 
-	emailRegex := `^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$`
-	if matched := regexp.MustCompile(emailRegex).MatchString(input.Email); !matched {
+	if matched := regexp.MustCompile(constants.EmailRegex).MatchString(input.Email); !matched {
 		return fmt.Errorf("invalid email, you entered %s", input.Email)
 	}
 
-	fullNameRegex := `^[a-zA-Z\s]+$`
-	if matched := regexp.MustCompile(fullNameRegex).MatchString(input.FullName); !matched {
+	if matched := regexp.MustCompile(constants.FullNameRegex).MatchString(input.FullName); !matched {
 		return fmt.Errorf("full name can only contain letters and spaces, you entered : %s", input.FullName)
 	}
 
-	phoneRegex := `^\d{10,15}$`
-	if matched := regexp.MustCompile(phoneRegex).MatchString(input.Phone); !matched {
+	if matched := regexp.MustCompile(constants.PhoneRegex).MatchString(input.Phone); !matched {
 		return fmt.Errorf("phone must contain 10 to 15 digits, you entered: %s", input.Phone)
 	}
 
@@ -79,8 +73,7 @@ func validateUpdateUserInput(input domain.UpdateUserRequestDTO) error {
 //     and dashes before the @ symbol.
 //   - Password: Must word must be eight characters long or more
 func validateExistingUserInput(input domain.ExistingUserRequestDTO) error {
-	emailRegex := `^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$`
-	if matched := regexp.MustCompile(emailRegex).MatchString(input.Email); !matched {
+	if matched := regexp.MustCompile(constants.EmailRegex).MatchString(input.Email); !matched {
 		return fmt.Errorf("invalid email, you entered %s", input.Email)
 	}
 
