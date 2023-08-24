@@ -1,5 +1,19 @@
 ## Ecommerce Microservice
 
+#### Microservice List
+
+| Microservices      | Design Decisions            | Status             |
+|--------------------|-----------------------------|--------------------|
+| Users-API          | Go, RDBMS(PostgreSQL/MySQL) | Completed          |
+| Auth-API           | JWT, Google Auth            | Ongoing            |
+| Product-API        |                             | Pending            |
+| Order-API          |                             | Pending            |
+| Cart-API           |                             | Pending            |
+| Payment-API        |                             | Pending            |
+| Review-API         |                             | Pending            |
+| Customer-Care-API  |                             | Pending            |
+
+
 #### Environment Setup
 
 ###### Clone using ssh protocol `git clone git@github.com:ashtishad/ecommerce.git`
