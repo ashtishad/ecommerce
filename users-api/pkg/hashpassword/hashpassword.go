@@ -22,9 +22,9 @@ func HashPassword(password string, saltHex string) string {
 	passwordBytes := []byte(password)
 	salt, _ := hex.DecodeString(saltHex)
 
-	passwordAndSalt := append(passwordBytes, salt...)
+	passwordBytes = append(passwordBytes, salt...)
 
-	hash := sha256.Sum256(passwordAndSalt)
+	hash := sha256.Sum256(passwordBytes)
 
 	hashedPassword := hex.EncodeToString(hash[:])
 
