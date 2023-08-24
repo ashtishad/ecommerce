@@ -35,9 +35,11 @@ func (d UserRepositoryDB) Create(user User, salt string) (User, error) {
 	if err != nil {
 		return User{}, err
 	}
+
 	defer func() {
 		if err != nil {
-			tx.Rollback()
+			rollBackErr := tx.Rollback()
+			d.l.Printf("failed to rollback in create user %s", rollBackErr.Error())
 		}
 	}()
 
