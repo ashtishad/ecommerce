@@ -56,6 +56,7 @@ func (service DefaultUserService) NewUser(request domain.NewUserRequestDTO) (*do
 		Phone:        createdUser.Phone,
 		SignUpOption: createdUser.SignUpOption,
 		Status:       createdUser.Status,
+		Timezone:     createdUser.Timezone,
 		CreatedAt:    createdUser.CreatedAt,
 		UpdatedAt:    createdUser.UpdatedAt,
 	}
@@ -88,6 +89,7 @@ func (service DefaultUserService) UpdateUser(request domain.UpdateUserRequestDTO
 		Phone:        updatedUser.Phone,
 		SignUpOption: updatedUser.SignUpOption,
 		Status:       updatedUser.Status,
+		Timezone:     updatedUser.Timezone,
 		CreatedAt:    updatedUser.CreatedAt,
 		UpdatedAt:    updatedUser.UpdatedAt,
 	}
@@ -114,6 +116,7 @@ func (service DefaultUserService) ExistingUser(request domain.ExistingUserReques
 		Phone:        existingUser.Phone,
 		SignUpOption: existingUser.SignUpOption,
 		Status:       existingUser.Status,
+		Timezone:     existingUser.Timezone,
 		CreatedAt:    existingUser.CreatedAt,
 		UpdatedAt:    existingUser.UpdatedAt,
 	}
