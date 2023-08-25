@@ -1,12 +1,12 @@
 services:
-  postgres:
+  db:
     image: postgres:15.4-alpine
     ports:
       - "127.0.0.1:5432:5432"
+    container_name: postgres
     volumes:
       - postgresdata:/var/lib/postgresql/data
       - ./users-api/database/migrations:/docker-entrypoint-initdb.d # will use a full-fledged migration management tool
-    container_name: postgres
     environment:
       POSTGRES_USER: postgres
       POSTGRES_PASSWORD: postgres
