@@ -1,4 +1,4 @@
-## Ecommerce Microservice- UsersAPI
+## Users-API
 
 #### Tools Used
 
@@ -14,10 +14,10 @@
 
 ├── cmd
 │   └── app
-│       └── app.go                  <-- Define routes, logger setup, wire up handler, start users-api server
-│       ├── app_helpers.go          <-- Sanity check.
-│       ├── app_helpers_test.go     <-- Unit tests of Sanity check.
-│       └── handlers.go             <-- User handlers for app endpoints
+│       └── app.go                    <-- Define routes, logger setup, wire up handler, start users-api server
+│       ├── app_helpers.go            <-- Sanity check.
+│       ├── app_helpers_test.go       <-- Unit tests of Sanity check.
+│       └── handlers.go               <-- User handlers for app endpoints
 ├── database
 │   └── migrations                    <-- Database schema migrations scripts of RDBMS.
 │   └── mysql_db_connection.go        <-- MySQL DB Connection config.
@@ -25,21 +25,19 @@
 │   └── domain
 │       └── user.go                   <-- User struct based on database schema.
 │       ├── user_dto.go               <-- User level data with hiding sensitive fields.
-│       ├── user_repository.go        <-- Includes core repository interface.
+│       ├── user_repository.go        <-- Includes core user repository interface.
 │       └── user_repository_db.go     <-- Repository interface implementation with db.
 │       └── user_sql_queries.go       <-- SQL queries written seperately here.
 │   └── service
-│       └── user_service.go           <-- Generate salt,hash pass, covert dto to domain and vice versa.
-│       └── service_helpers.go.go     <-- Included user input validation.
+│       └── user_service.go           <-- Generate salt,hash pass, convert dto to domain and vice versa.
+│       └── service_helpers.go.go     <-- User input validation.
 ├── pkg
-│   └── ginconf
-│       └── ginconf.go                <-- Custom middlewares configurations for gin, especially gin log and recovery.
 │   └── hashpassword
 │       └── hashpassword.go           <-- Generate random salt and hashpassword with it.
 ```
 
 
-#### Data Flow (Hexagonal architecture)
+#### Data Flow
 
     Incoming : Client --(JSON)-> REST Handlers --(DTO)-> Service --(Domain Object)-> RepositoryDB
 
