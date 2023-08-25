@@ -1,0 +1,22 @@
+services:
+  db:
+    image: postgres:15.4-alpine
+    ports:
+      - "127.0.0.1:5432:5432"
+    container_name: postgres
+    volumes:
+      - postgresdata:/var/lib/postgresql/data
+      - ./config/initdb:/docker-entrypoint-initdb.d
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+      TZ: UTC
+    restart: "unless-stopped" # for allowing me to stop it when maintenance, upgrades, troubleshooting, etc.
+
+volumes:
+  postgresdata:
+    driver: local
+
+networks: # optional network definition
+  default:
+    driver: bridge

@@ -11,6 +11,7 @@ type UserResponseDTO struct {
 	Phone        string    `json:"phone"`
 	SignUpOption string    `json:"sign_up_option"` // Enum 'general', 'google'
 	Status       string    `json:"status"`         // Enum 'active', 'inactive', 'deleted'
+	Timezone     string    `json:"timezone"`
 	CreatedAt    time.Time `json:"created_at"`
 	UpdatedAt    time.Time `json:"updated_at"`
 }
@@ -23,19 +24,15 @@ type NewUserRequestDTO struct {
 	FullName     string `json:"full_name"`
 	Phone        string `json:"phone"`
 	SignUpOption string `json:"sign_up_option"` // Enum 'general', 'google', can have a default value
+	Timezone     string `json:"timezone"`
 }
 
 // UpdateUserRequestDTO only has required fields for updating a user
 // and, excluded password, sign_up_option field
 type UpdateUserRequestDTO struct {
-	UserUUID string `json:"user_id"`
-	Email    string `json:"email" ` // while updating, email should be unique
+	UserUUID string `json:"user_id"` // path param
+	Email    string `json:"email" `  // while updating, email should be unique
 	FullName string `json:"full_name"`
 	Phone    string `json:"phone"`
-}
-
-// ExistingUserRequestDTO only has email for existing user
-type ExistingUserRequestDTO struct {
-	Email    string `json:"email" `
-	Password string `json:"password" `
+	Timezone string `json:"timezone"`
 }

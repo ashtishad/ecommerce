@@ -37,6 +37,10 @@ func validateCreateUserInput(input domain.NewUserRequestDTO) error {
 		return fmt.Errorf("sign up option must be 'general' or 'google': %s", input.SignUpOption)
 	}
 
+	if matched := regexp.MustCompile(constants.TimezoneRegex).MatchString(input.Timezone); !matched {
+		return fmt.Errorf("timezone will be in 'UTC' or 'asia/dhaka' format, you entered: %s", input.Timezone)
+	}
+
 	return nil
 }
 
@@ -65,20 +69,9 @@ func validateUpdateUserInput(input domain.UpdateUserRequestDTO) error {
 		return fmt.Errorf("phone must contain 10 to 15 digits, you entered: %s", input.Phone)
 	}
 
-	return nil
-}
-
-// validateExistingUserInput validates the input for creating a new user.
-//   - Email: Must consist of alphanumeric characters, dots, underscores, percent signs, plus signs,
-//     and dashes before the @ symbol.
-//   - Password: Must word must be eight characters long or more
-func validateExistingUserInput(input domain.ExistingUserRequestDTO) error {
-	if matched := regexp.MustCompile(constants.EmailRegex).MatchString(input.Email); !matched {
-		return fmt.Errorf("invalid email, you entered %s", input.Email)
+	if matched := regexp.MustCompile(constants.TimezoneRegex).MatchString(input.Timezone); !matched {
+		return fmt.Errorf("timezone will be in 'UTC' or 'asia/dhaka' format, you entered: %s", input.Timezone)
 	}
 
-	if len(input.Password) < 8 {
-		return errors.New("password must be at least 8 characters long")
-	}
 	return nil
 }

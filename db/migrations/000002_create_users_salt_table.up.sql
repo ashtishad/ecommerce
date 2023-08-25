@@ -1,5 +1,3 @@
--- migrations/03-create-users-salt-table.sql
-USE users;
 CREATE TABLE IF NOT EXISTS user_salts
 (
     user_id INT      NOT NULL,

@@ -9,6 +9,9 @@ import (
 	"github.com/ashtishad/ecommerce/users-api/internal/service"
 	"github.com/ashtishad/ecommerce/users-api/pkg/ginconf"
 	"github.com/gin-gonic/gin"
+	"github.com/golang-migrate/migrate/v4"
+	_ "github.com/golang-migrate/migrate/v4/database/postgres"
+	_ "github.com/golang-migrate/migrate/v4/source/file"
 	"log"
 	"net/http"
 	"os"
@@ -25,13 +28,27 @@ func StartUsersAPI() {
 	var r = gin.New()
 
 	// database connection config
-	conn := database.GetMySqlDBClient()
+	conn := database.GetDbClient()
 	defer func(conn *sql.DB) {
-		err := conn.Close()
-		if err != nil {
-			l.Printf("couldn't close the database client : %v", err.Error())
+		dbConnCloseErr := conn.Close()
+		if dbConnCloseErr != nil {
+			l.Printf("error closing db connection %s", dbConnCloseErr.Error())
+			return
 		}
 	}(conn)
+
+	// run db migrations if any
+	m, err := migrate.New(
+		"file://db/migrations",
+		database.GetDSNString(),
+	)
+	if err != nil {
+		l.Fatalf("error creating migration: %v", err)
+	}
+
+	if err := m.Up(); err != nil && err != migrate.ErrNoChange {
+		l.Fatalf("error applying migration: %v", err)
+	}
 
 	// wire up the handler
 	userRepositoryDB := domain.NewUserRepositoryDB(conn, l)
@@ -73,7 +90,5 @@ func setUsersApiRoutes(r *gin.Engine, uh UserHandlers) {
 	{
 		userRoutes.POST("", uh.createUserHandler)
 		userRoutes.PUT("/:user_id", uh.updateUserHandler)
-		userRoutes.POST("/existing-user", uh.existingUserHandler)
-		userRoutes.GET("/existing-user", uh.existingUserHandler)
 	}
 }

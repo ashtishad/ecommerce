@@ -62,27 +62,3 @@ func (us *UserHandlers) updateUserHandler(c *gin.Context) {
 
 	c.JSON(http.StatusOK, userResponse)
 }
-
-// existingUserHandler handles the retrieval of an existing user.
-// It decodes the existing user request, returns bad request error if failed to decode json,
-// then calls the service method to get the existing user,
-// finally write the response data and correct HTTP status code.
-func (us *UserHandlers) existingUserHandler(c *gin.Context) {
-	us.l.Println("Handling GET request on /user")
-
-	var existingUserRequest domain.ExistingUserRequestDTO
-	if err := c.ShouldBindJSON(&existingUserRequest); err != nil {
-		us.l.Println(err.Error())
-		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
-		return
-	}
-
-	userResponse, err := us.service.ExistingUser(existingUserRequest)
-	if err != nil {
-		us.l.Println(err.Error())
-		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
-		return
-	}
-
-	c.JSON(http.StatusOK, userResponse)
-}
