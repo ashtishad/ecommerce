@@ -9,6 +9,9 @@ import (
 	"github.com/ashtishad/ecommerce/users-api/internal/service"
 	"github.com/ashtishad/ecommerce/users-api/pkg/ginconf"
 	"github.com/gin-gonic/gin"
+	"github.com/golang-migrate/migrate/v4"
+	_ "github.com/golang-migrate/migrate/v4/database/postgres"
+	_ "github.com/golang-migrate/migrate/v4/source/file"
 	"log"
 	"net/http"
 	"os"
@@ -33,6 +36,19 @@ func StartUsersAPI() {
 			return
 		}
 	}(conn)
+
+	// run db migrations if any
+	m, err := migrate.New(
+		"file://db/migrations",
+		database.GetDSNString(),
+	)
+	if err != nil {
+		l.Fatalf("error creating migration: %v", err)
+	}
+
+	if err := m.Up(); err != nil && err != migrate.ErrNoChange {
+		l.Fatalf("error applying migration: %v", err)
+	}
 
 	// wire up the handler
 	userRepositoryDB := domain.NewUserRepositoryDB(conn, l)

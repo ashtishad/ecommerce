@@ -1,13 +1,14 @@
 ## Ecommerce Microservice- UsersAPI
 
-#### Tools Used
+#### Tools
 
 * Language used: GoLang
-* Database Used: MySQL
+* Database Used: PostgreSQL
 * Design       : Domain driven design
   * Libraries Used:
     * [Gin](https://github.com/gin-gonic/gin)
-    * [Go SQL Driver](https://github.com/go-sql-driver/mysql)
+    * [pq](https://pkg.go.dev/github.com/lib/pq#section-readme)
+    * [migrate](https://github.com/golang-migrate/migrate)
 
 #### Project Structure(Users-API)
 ```

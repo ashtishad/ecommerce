@@ -14,7 +14,7 @@ func TestGetDSNString(t *testing.T) {
 
 	expected := "postgres://user:password@host:5432/dbname?sslmode=disable&timezone=UTC"
 
-	result := getDSNString()
+	result := GetDSNString()
 
 	if result != expected {
 		t.Errorf("getDSNString() returned %s; expected %s", result, expected)

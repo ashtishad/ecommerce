@@ -6,7 +6,7 @@ services:
     container_name: postgres
     volumes:
       - postgresdata:/var/lib/postgresql/data
-      - ./users-api/database/migrations:/docker-entrypoint-initdb.d # will use a full-fledged migration management tool
+      - ./config/initdb:/docker-entrypoint-initdb.d
     environment:
       POSTGRES_USER: postgres
       POSTGRES_PASSWORD: postgres

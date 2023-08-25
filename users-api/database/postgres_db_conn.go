@@ -11,12 +11,12 @@ import (
 	"time"
 )
 
-// getDSNString constructs a PostgreSQL Data Source Name (DSN) string using environment variables.
+// GetDSNString constructs a PostgreSQL Data Source Name (DSN) string using environment variables.
 // It sets the connection parameters such as user, password, host, port, database name, timezone, and SSL mode.
 // The resulting DSN string is in the format:
 // "postgres://user:password@host:port/dbname?sslmode=disable&timezone=UTC"
 // Returns the constructed DSN string.
-func getDSNString() string {
+func GetDSNString() string {
 	portInt, _ := strconv.Atoi(os.Getenv("DB_PORT"))
 	dsn := url.URL{
 		Scheme: "postgres",
@@ -34,7 +34,7 @@ func getDSNString() string {
 
 // GetDbClient creates a new database connection and returns it
 func GetDbClient() *sql.DB {
-	dsn := getDSNString()
+	dsn := GetDSNString()
 	db, err := sql.Open("postgres", dsn)
 	if err != nil {
 		log.Fatalf("error connecting to the database: %v", err)
