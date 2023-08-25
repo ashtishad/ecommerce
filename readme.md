@@ -2,37 +2,18 @@
 
 ### Microservice List
 
+| Microservices     | Design Decisions      | Status    | Readme Link                                                               |
+|-------------------|-----------------------|-----------|---------------------------------------------------------------------------|
+| Users-API         | Go, RDBMS(PostgreSQL) | Completed | [Link](https://github.com/ashtishad/ecommerce/tree/main/users-api#readme) |
+| Auth-API          | JWT, Google Auth      | Ongoing   |                                                                           |
+| Product-API       |                       | Pending   |                                                                           |
+| Order-API         |                       | Pending   |                                                                           |
+| Cart-API          |                       | Pending   |                                                                           |
+| Payment-API       |                       | Pending   |                                                                           |
+| Review-API        |                       | Pending   |                                                                           |
+| Customer-Care-API |                       | Pending   |                                                                           |
 
-
-| Microservices      | Design Decisions            | Status             | Readme Link                                                               |
-|--------------------|-----------------------------|--------------------|---------------------------------------------------------------------------|
-| Users-API          | Go, RDBMS(PostgreSQL/MySQL) | Completed          | [Link](https://github.com/ashtishad/ecommerce/tree/main/users-api#readme) |
-| Auth-API           | JWT, Google Auth            | Ongoing            |                                                                           |
-| Product-API        |                             | Pending            |                                                                           |
-| Order-API          |                             | Pending            |                                                                           |
-| Cart-API           |                             | Pending            |                                                                           |
-| Payment-API        |                             | Pending            |                                                                           |
-| Review-API         |                             | Pending            |                                                                           |
-| Customer-Care-API  |                             | Pending            |                                                                           |
-
-### Design Decisions
-
-1. Database per service pattern
-  * Separate database for each service, one service won't communicate directly to another service's database. Why?
-    * Separation of concerns (Each service to run independently).
-    * Database schema/structure of another service that might change unexpectedly won't affect another.
-    * There won't be a single point of failure would increase Site Reliability.
-    * Some services might function more efficiently with different types of DB's (sql vs nosql).
-    * Easy to scale, test, manage, maintain and audit.
-    
-2.How to exchange data between services?
-   * Asynchronous Data Communication (Event Driven). Use Event Bus to exchange data(eg: Pache Kafka/RabbitMQ/NATS). Why Async Communication?
-     * Zero dependency on other services.
-     * No need to wait for other services to be ready.
-     * Addition of new services is easy and service operations will be extremely fast.
-  * Downside? - Data duplication.
-
-
+### Design Decisions(V1)
 
 ###### General
 
@@ -51,7 +32,7 @@
 ###### Users-API
 
 * RDBMS: MySQL/PostgreSQL (for structured data)
-* Database Name: Users (will change it to Ecommerce)
+* Database Name: ecommerce
 * Cache: Redis
 * Password Hashing: Salt
 
@@ -106,24 +87,26 @@ To run the application, you have to define the environment variables, default va
 
 - SERVER_ADDRESS    `[IP Address of the machine]` : `localhost`
 - SERVER_PORT       `[Port of the machine]` : `8000`
-- DB_USER           `[Database username]` : `root`
-- DB_PASSWD         `[Database password]`: `root`
+- DB_USER           `[Database username]` : `postgres`
+- DB_PASSWD         `[Database password]`: `potgres`
 - DB_ADDR           `[IP address of the database]` : `localhost`
-- DB_PORT           `[Port of the database]` : `3306`
-- DB_NAME           `[Name of the database]` : `users`
+- DB_PORT           `[Port of the database]` : `5432`
+- DB_NAME           `[Name of the database]` : `ecommerce`
 
-###### MySQL Database Setup
-* Make the changes to your `start.sh` file for modifying default db configurations.
-* `docker-compose.yml` file. This contains the database migrations scripts. You just need to bring the container up.
-* `docker-compose down
-  docker volume rm ecommerce_mysqldata` to wipe up a database and remove applied migrations.
-  To start the docker container, run the `docker-compose up`.
+###### Postgres Database Setup
+
+* Change environment variables in Makefile: Set values in Makefile stored in project root.
+* Run docker compose: Bring the container up with `docker compose up`. Configurations are in `compose.yaml` file.
+* (optional) Remove databases and volumes:
+  ```
+  docker compose down
+  docker volume rm ecommerce_postgresdata
+  ```
 
 ###### Run the application
-* Run the application with `./start.sh` command from project root. or, if you want to run it from IDE, please set
-  environment variables by executing command from start.sh on your terminal.
-* (optional) Make the Script Executable: You must give the script execute permissions before you can run it. Use the following command:
-  `chmod +x start.sh`
+
+* Run the application with `make run` command from project root. or, if you want to run it from IDE, please set
+  environment variables by executing commands mentioned in Makefile on your terminal.
 
 
 #### Project Structure
@@ -132,9 +115,9 @@ To run the application, you have to define the environment variables, default va
 ├── lib                             <-- Common files shared between services(error library, logging, ginconfig etc)
 ├── users-api                       <-- Users API microservice.
 ├── auth-api                        <-- Auth API microservice.
-├── docker-compose.yml              <-- Docker setup golangci.yml
+├── compose.yaml                    <-- Docker services setup(databases)
 ├── golangci.yml                    <-- Config for golangci-lint. 
-├── start.sh                        <-- Builds the whole app with exporting environment variables.
+├── Makefile                        <-- Builds the whole app with exporting environment variables.
 ├── main.go                         <-- Responsible to start all server of this microservice
 ├── readme.md                       <-- Ecommerce Project Central Readme.
 
@@ -190,3 +173,24 @@ curl --location 'localhost:8000/existing-user' \
 ###### Hexagonal Architecture
 
 ![hexagonal_architecture.png](assets%2Fimages%2Fhexagonal_architecture.png)
+
+### Design Decisions(V2)
+
+1. Database per service pattern
+
+* Separate database for each service, one service won't communicate directly to another service's database. Why?
+  * Separation of concerns (Each service to run independently).
+  * Database schema/structure of another service that might change unexpectedly won't affect another.
+  * There won't be a single point of failure would increase Site Reliability.
+  * Some services might function more efficiently with different types of DB's (sql vs nosql).
+  * Easy to scale, test, manage, maintain and audit.
+
+2.How to exchange data between services?
+
+* Asynchronous Data Communication (Event Driven). Use Event Bus to exchange data(eg: Pache Kafka/RabbitMQ/NATS). Why
+  Async Communication?
+  * Zero dependency on other services.
+  * No need to wait for other services to be ready.
+  * Addition of new services is easy and service operations will be extremely fast.
+* Downside? - Data duplication.
+
