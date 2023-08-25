@@ -25,11 +25,12 @@ func StartUsersAPI() {
 	var r = gin.New()
 
 	// database connection config
-	conn := database.GetMySqlDBClient()
+	conn := database.GetDbClient()
 	defer func(conn *sql.DB) {
-		err := conn.Close()
-		if err != nil {
-			l.Printf("couldn't close the database client : %v", err.Error())
+		dbConnCloseErr := conn.Close()
+		if dbConnCloseErr != nil {
+			l.Printf("error closing db connection %s", dbConnCloseErr.Error())
+			return
 		}
 	}(conn)
 

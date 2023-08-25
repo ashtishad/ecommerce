@@ -14,13 +14,14 @@
 
 ├── cmd
 │   └── app
-│       └── app.go                  <-- Define routes, logger setup, wire up handler, start users-api server
-│       ├── app_helpers.go          <-- Sanity check.
-│       ├── app_helpers_test.go     <-- Unit tests of Sanity check.
-│       └── handlers.go             <-- User handlers for app endpoints
+│       └── app.go                    <-- Define routes, logger setup, wire up handler, start users-api server
+│       ├── app_helpers.go            <-- Sanity check.
+│       ├── app_helpers_test.go       <-- Unit tests of Sanity check.
+│       └── handlers.go               <-- User handlers for app endpoints
 ├── database
 │   └── migrations                    <-- Database schema migrations scripts of RDBMS.
-│   └── mysql_db_connection.go        <-- MySQL DB Connection config.
+│   └── postgres_db_conn.go           <-- Postgresql DB Connection config.
+│   └── postgres_db_conn_test.go      <-- Connection string making test..
 ├── internal
 │   └── domain
 │       └── user.go                   <-- User struct based on database schema.

@@ -5,5 +5,5 @@ run:
 	export DB_PASSWD=potgres \
 	export DB_ADDR=localhost \
 	export DB_PORT=5432 \
-	export DB_NAME=users \
+	export DB_NAME=ecommerce \
 	&& go run main.go
