@@ -4,6 +4,7 @@ import (
 	"github.com/ashtishad/ecommerce/users-api/internal/domain"
 	"github.com/ashtishad/ecommerce/users-api/pkg/constants"
 	"github.com/ashtishad/ecommerce/users-api/pkg/hashpassword"
+	"strings"
 )
 
 type UserService interface {
@@ -35,12 +36,13 @@ func (service DefaultUserService) NewUser(request domain.NewUserRequestDTO) (*do
 	hashedPassword := hashpassword.HashPassword(request.Password, salt)
 
 	user := domain.User{
-		Email:        request.Email,
+		Email:        strings.ToLower(request.Email),
 		PasswordHash: hashedPassword,
 		FullName:     request.FullName,
 		Phone:        request.Phone,
 		SignUpOption: request.SignUpOption,
 		Status:       constants.UserStatusActive,
+		Timezone:     strings.ToLower(request.Timezone),
 	}
 
 	createdUser, err := service.repo.Create(user, salt)
@@ -70,10 +72,11 @@ func (service DefaultUserService) UpdateUser(request domain.UpdateUserRequestDTO
 
 	user := domain.User{
 		UserUUID: request.UserUUID,
-		Email:    request.Email,
+		Email:    strings.ToLower(request.Email),
 		FullName: request.FullName,
 		Phone:    request.Phone,
 		Status:   constants.UserStatusActive,
+		Timezone: strings.ToLower(request.Timezone),
 	}
 
 	updatedUser, err := service.repo.Update(user)

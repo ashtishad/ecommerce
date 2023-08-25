@@ -37,6 +37,10 @@ func validateCreateUserInput(input domain.NewUserRequestDTO) error {
 		return fmt.Errorf("sign up option must be 'general' or 'google': %s", input.SignUpOption)
 	}
 
+	if matched := regexp.MustCompile(constants.TimezoneRegex).MatchString(input.Timezone); !matched {
+		return fmt.Errorf("timezone will be in 'UTC' or 'asia/dhaka' format, you entered: %s", input.Timezone)
+	}
+
 	return nil
 }
 
@@ -63,6 +67,10 @@ func validateUpdateUserInput(input domain.UpdateUserRequestDTO) error {
 
 	if matched := regexp.MustCompile(constants.PhoneRegex).MatchString(input.Phone); !matched {
 		return fmt.Errorf("phone must contain 10 to 15 digits, you entered: %s", input.Phone)
+	}
+
+	if matched := regexp.MustCompile(constants.TimezoneRegex).MatchString(input.Timezone); !matched {
+		return fmt.Errorf("timezone will be in 'UTC' or 'asia/dhaka' format, you entered: %s", input.Timezone)
 	}
 
 	return nil

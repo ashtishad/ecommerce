@@ -13,7 +13,7 @@ CREATE TABLE IF NOT EXISTS users
     phone          VARCHAR(20)  NOT NULL,
     sign_up_option sign_up_option        DEFAULT 'general',
     status         user_status           DEFAULT 'active',
-    timezone       VARCHAR(255),
+    timezone VARCHAR(255) NOT NULL DEFAULT 'UTC',
     created_at     TIMESTAMPTZ           DEFAULT CURRENT_TIMESTAMP,
     updated_at     TIMESTAMPTZ           DEFAULT CURRENT_TIMESTAMP
 );

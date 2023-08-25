@@ -17,9 +17,6 @@ func NewUserRepositoryDB(dbClient *sql.DB, l *log.Logger) UserRepositoryDB {
 	return UserRepositoryDB{dbClient, l}
 }
 
-// Create is responsible for creating user and salt from fields provided in domain.NewUserRequestDTO
-// first checks user exists, then start the transaction, then goes to user creation,
-// returns internal server error if some error occurs in database side.
 func (d UserRepositoryDB) Create(user User, salt string) (User, error) {
 	exists, err := d.isUserExist(user.Email)
 	if err != nil {
@@ -39,20 +36,17 @@ func (d UserRepositoryDB) Create(user User, salt string) (User, error) {
 	defer func() {
 		if err != nil {
 			rollBackErr := tx.Rollback()
-			d.l.Printf("failed to rollback in create user %s", rollBackErr.Error())
+			if rollBackErr != nil {
+				d.l.Printf("failed to rollback in create user: %s", rollBackErr.Error())
+			}
 		}
 	}()
 
-	result, err := tx.ExecContext(context.Background(), sqlInsertUser, user.Email, user.PasswordHash, user.FullName, user.Phone, user.SignUpOption)
-	if err != nil {
+	var userID int
+	err = tx.QueryRowContext(context.Background(), sqlInsertUserWithReturnID, user.Email, user.PasswordHash, user.FullName, user.Phone, user.SignUpOption, user.Timezone).Scan(&userID)
+	if err != nil || userID == 0 {
 		return User{}, fmt.Errorf("error creating user: %w", err)
 	}
-
-	id, err := result.LastInsertId()
-	if err != nil || id == 0 {
-		return User{}, fmt.Errorf("error getting last inserted user ID: %w", err)
-	}
-	userID := int(id)
 
 	_, err = tx.Exec(sqlInsertUserIDSalt, userID, salt)
 	if err != nil {
@@ -100,7 +94,7 @@ func (d UserRepositoryDB) findUserByID(userID int) (User, error) {
 	row := d.db.QueryRow(sqlFindUserByID, userID)
 
 	var user User
-	err := row.Scan(&user.UserID, &user.UserUUID, &user.Email, &user.PasswordHash, &user.FullName, &user.Phone, &user.SignUpOption, &user.Status, &user.CreatedAt, &user.UpdatedAt)
+	err := row.Scan(&user.UserID, &user.UserUUID, &user.Email, &user.PasswordHash, &user.FullName, &user.Phone, &user.SignUpOption, &user.Status, &user.Timezone, &user.CreatedAt, &user.UpdatedAt)
 	if err != nil {
 		if errors.Is(err, sql.ErrNoRows) {
 			// d.l.Println(err.Error())
@@ -118,7 +112,7 @@ func (d UserRepositoryDB) findUserByUUID(userUUID string) (User, error) {
 	row := d.db.QueryRow(sqlFindUserByUUID, userUUID)
 
 	var user User
-	err := row.Scan(&user.UserID, &user.UserUUID, &user.Email, &user.PasswordHash, &user.FullName, &user.Phone, &user.SignUpOption, &user.Status, &user.CreatedAt, &user.UpdatedAt)
+	err := row.Scan(&user.UserID, &user.UserUUID, &user.Email, &user.PasswordHash, &user.FullName, &user.Phone, &user.SignUpOption, &user.Status, &user.Timezone, &user.CreatedAt, &user.UpdatedAt)
 	if err != nil {
 		if errors.Is(err, sql.ErrNoRows) {
 			// d.l.Println(err.Error())
@@ -132,11 +126,10 @@ func (d UserRepositoryDB) findUserByUUID(userUUID string) (User, error) {
 
 // isUserExist just for quick checking user exists or not
 func (d UserRepositoryDB) isUserExist(email string) (bool, error) {
-	var exists int
-	query := "SELECT EXISTS(SELECT 1 FROM users WHERE email = ?) as user_exists"
-	err := d.db.QueryRow(query, email).Scan(&exists)
+	var exists bool
+	err := d.db.QueryRow(sqlIsUserExists, email).Scan(&exists)
 	if err != nil && !errors.Is(err, sql.ErrNoRows) {
 		return false, err
 	}
-	return exists != 0, nil
+	return exists, nil
 }
