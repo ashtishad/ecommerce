@@ -34,9 +34,3 @@ type UpdateUserRequestDTO struct {
 	FullName string `json:"full_name"`
 	Phone    string `json:"phone"`
 }
-
-// ExistingUserRequestDTO only has email for existing user
-type ExistingUserRequestDTO struct {
-	Email    string `json:"email" `
-	Password string `json:"password" `
-}

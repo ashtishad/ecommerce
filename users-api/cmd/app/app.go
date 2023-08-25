@@ -73,7 +73,5 @@ func setUsersApiRoutes(r *gin.Engine, uh UserHandlers) {
 	{
 		userRoutes.POST("", uh.createUserHandler)
 		userRoutes.PUT("/:user_id", uh.updateUserHandler)
-		userRoutes.POST("/existing-user", uh.existingUserHandler)
-		userRoutes.GET("/existing-user", uh.existingUserHandler)
 	}
 }

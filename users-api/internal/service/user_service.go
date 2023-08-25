@@ -9,7 +9,6 @@ import (
 type UserService interface {
 	NewUser(request domain.NewUserRequestDTO) (*domain.UserResponseDTO, error)
 	UpdateUser(request domain.UpdateUserRequestDTO) (*domain.UserResponseDTO, error)
-	ExistingUser(request domain.ExistingUserRequestDTO) (*domain.UserResponseDTO, error)
 }
 
 type DefaultUserService struct {
@@ -92,33 +91,6 @@ func (service DefaultUserService) UpdateUser(request domain.UpdateUserRequestDTO
 		Timezone:     updatedUser.Timezone,
 		CreatedAt:    updatedUser.CreatedAt,
 		UpdatedAt:    updatedUser.UpdatedAt,
-	}
-
-	return userResponseDTO, nil
-}
-
-// ExistingUser calls the repository to save the new user, get the user model if everything okay, otherwise returns error
-// Finally converts to UserResponseDTO.
-func (service DefaultUserService) ExistingUser(request domain.ExistingUserRequestDTO) (*domain.UserResponseDTO, error) {
-	if err := validateExistingUserInput(request); err != nil {
-		return nil, err
-	}
-
-	existingUser, err := service.repo.FindExisting(request.Email, request.Password)
-	if err != nil {
-		return nil, err
-	}
-
-	userResponseDTO := &domain.UserResponseDTO{
-		UserUUID:     existingUser.UserUUID,
-		Email:        existingUser.Email,
-		FullName:     existingUser.FullName,
-		Phone:        existingUser.Phone,
-		SignUpOption: existingUser.SignUpOption,
-		Status:       existingUser.Status,
-		Timezone:     existingUser.Timezone,
-		CreatedAt:    existingUser.CreatedAt,
-		UpdatedAt:    existingUser.UpdatedAt,
 	}
 
 	return userResponseDTO, nil
