@@ -37,8 +37,6 @@ func GenerateUsers(db *sql.DB, n int) {
 		}
 	}()
 
-	signUpOptions := []string{"google", "general"}
-
 	for i := 0; i < n; i++ {
 		email := gofakeit.Email()
 		fullName := gofakeit.Name()
@@ -52,7 +50,7 @@ func GenerateUsers(db *sql.DB, n int) {
 		}
 		hashedPassword := hashpassword.HashPassword(password, salt)
 
-		signUpOption := signUpOptions[rand.Intn(len(signUpOptions))]
+		signUpOption := getRandomSignUpOption()
 		userStatus := getRandomUserStatus()
 		timezone := gofakeit.TimeZoneRegion()
 
@@ -100,4 +98,14 @@ func getRandomUserStatus() string {
 	default: // 15% chance
 		return constants.UserStatusDeleted
 	}
+}
+
+// getRandomSignUpOption generates two possible statuses: "general", "google".
+// general has 65% chance of being chosen and google has 35%.
+func getRandomSignUpOption() string {
+	randNumber := rand.Intn(100)
+	if randNumber < 65 {
+		return constants.SignupOptGeneral
+	}
+	return constants.SignUpOptGoogle
 }
