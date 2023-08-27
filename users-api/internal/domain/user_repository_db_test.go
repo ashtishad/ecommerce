@@ -36,6 +36,15 @@ func mockUserRows(user User) *sqlmock.Rows {
 		AddRow(user.UserID, user.UserUUID, user.Email, user.PasswordHash, user.FullName, user.Phone, user.SignUpOption, user.Status, user.Timezone, user.CreatedAt, user.UpdatedAt)
 }
 
+// Utility functions to handle Regex and TrimSpace
+func expectQuery(mock sqlmock.Sqlmock, query string) *sqlmock.ExpectedQuery {
+	return mock.ExpectQuery(regexp.QuoteMeta(strings.TrimSpace(query)))
+}
+
+func expectExec(mock sqlmock.Sqlmock, query string) *sqlmock.ExpectedExec {
+	return mock.ExpectExec(regexp.QuoteMeta(strings.TrimSpace(query)))
+}
+
 // TestIsUserExist s checking that the isUserExist function correctly constructs and runs an SQL query to check
 // whether a user with a given email exists. It's testing that the function runs without errors, and that it returns
 // the correct result for the given input. By using a mock database connection, the test can run without needing
@@ -51,8 +60,7 @@ func TestIsUserExist(t *testing.T) {
 
 	email := "test@example.com"
 
-	escapedSQL := regexp.QuoteMeta(sqlIsUserExists)
-	mock.ExpectQuery(escapedSQL).WithArgs(email).WillReturnRows(sqlmock.NewRows([]string{"exists"}).AddRow(true))
+	expectQuery(mock, sqlIsUserExists).WithArgs(email).WillReturnRows(sqlmock.NewRows([]string{"exists"}).AddRow(true))
 
 	exists, err := repo.isUserExist(email)
 
@@ -66,7 +74,6 @@ func TestFindUserByID(t *testing.T) {
 	defer db.Close()
 
 	repo := NewUserRepositoryDB(db, nil)
-	escapedSQL := regexp.QuoteMeta(sqlFindUserByID) // escaped any special character(especially $ sign)
 
 	// Test case 1: user exists
 	userID := 1
@@ -88,7 +95,7 @@ func TestFindUserByID(t *testing.T) {
 		AddRow(mockUser.UserID, mockUser.UserUUID, mockUser.Email, mockUser.PasswordHash, mockUser.FullName, mockUser.Phone, mockUser.SignUpOption, mockUser.Status, mockUser.Timezone, mockUser.CreatedAt, mockUser.UpdatedAt)
 
 	// Test case 1: user exists
-	mock.ExpectQuery("^" + escapedSQL + "$").WithArgs(userID).WillReturnRows(rows)
+	expectQuery(mock, sqlFindUserByID).WithArgs(userID).WillReturnRows(rows)
 
 	user, err := repo.findUserByID(userID)
 
@@ -97,7 +104,7 @@ func TestFindUserByID(t *testing.T) {
 
 	// Test case 2: user does not exist
 	userID = 999
-	mock.ExpectQuery("^" + escapedSQL + "$").WithArgs(userID).WillReturnError(sql.ErrNoRows)
+	expectQuery(mock, sqlFindUserByID).WithArgs(userID).WillReturnError(sql.ErrNoRows)
 
 	user, err = repo.findUserByID(userID)
 
@@ -107,7 +114,7 @@ func TestFindUserByID(t *testing.T) {
 
 	// Test case 3: internal error occurs
 	userID = 500
-	mock.ExpectQuery("^" + escapedSQL + "$").WithArgs(userID).WillReturnError(errors.New("internal error"))
+	expectQuery(mock, sqlFindUserByID).WithArgs(userID).WillReturnError(errors.New("internal error"))
 
 	user, err = repo.findUserByID(userID)
 	expectedError := errors.New("error scanning user data: internal error")
@@ -123,7 +130,6 @@ func TestFindUserByUUID(t *testing.T) {
 	defer db.Close()
 
 	repo := NewUserRepositoryDB(db, nil)
-	escapedSQL := regexp.QuoteMeta(sqlFindUserByUUID) // escaped any special character(especially $ sign)
 
 	// Test case 1: user exists
 	UserUUID := "83f9ecdf-a838-4892-982f-ad34d42b1480"
@@ -145,7 +151,7 @@ func TestFindUserByUUID(t *testing.T) {
 		AddRow(mockUser.UserID, mockUser.UserUUID, mockUser.Email, mockUser.PasswordHash, mockUser.FullName, mockUser.Phone, mockUser.SignUpOption, mockUser.Status, mockUser.Timezone, mockUser.CreatedAt, mockUser.UpdatedAt)
 
 	// Test case 1: user exists
-	mock.ExpectQuery("^" + escapedSQL + "$").WithArgs(UserUUID).WillReturnRows(rows)
+	expectQuery(mock, sqlFindUserByUUID).WithArgs(UserUUID).WithArgs(UserUUID).WillReturnRows(rows)
 
 	user, err := repo.findUserByUUID(UserUUID)
 
@@ -154,7 +160,7 @@ func TestFindUserByUUID(t *testing.T) {
 
 	// Test case 2: user does not exist
 	UserUUID = "7b96a2fb-3fdf-43a6-b09a-a82169286fdf"
-	mock.ExpectQuery("^" + escapedSQL + "$").WithArgs(UserUUID).WillReturnError(sql.ErrNoRows)
+	expectQuery(mock, sqlFindUserByUUID).WithArgs(UserUUID).WillReturnError(sql.ErrNoRows)
 
 	user, err = repo.findUserByUUID(UserUUID)
 
@@ -164,7 +170,7 @@ func TestFindUserByUUID(t *testing.T) {
 
 	// Test case 3: internal error occurs
 	UserUUID = "da7ccd97-686e-444c-93c6-6bef23e6a401"
-	mock.ExpectQuery("^" + escapedSQL + "$").WithArgs(UserUUID).WillReturnError(errors.New("internal error"))
+	expectQuery(mock, sqlFindUserByUUID).WithArgs(UserUUID).WillReturnError(errors.New("internal error"))
 
 	user, err = repo.findUserByUUID(UserUUID)
 	expectedError := errors.New("error scanning user data by uuid: internal error")
@@ -187,14 +193,14 @@ func TestCreate(t *testing.T) {
 		salt := "some_salt"
 		rows := mockUserRows(mockUser)
 
-		mock.ExpectQuery(regexp.QuoteMeta(sqlIsUserExists)).WithArgs(mockUser.Email).WillReturnRows(sqlmock.NewRows([]string{"exists"}).AddRow(false))
+		expectQuery(mock, sqlIsUserExists).WithArgs(mockUser.Email).WillReturnRows(sqlmock.NewRows([]string{"exists"}).AddRow(false))
 		mock.ExpectBegin()
-		mock.ExpectQuery(`^`+regexp.QuoteMeta(strings.TrimSpace(sqlInsertUserWithReturnID))+`$`).
+		expectQuery(mock, sqlInsertUserWithReturnID).
 			WithArgs(mockUser.Email, mockUser.PasswordHash, mockUser.FullName, mockUser.Phone, mockUser.SignUpOption, mockUser.Timezone).
 			WillReturnRows(sqlmock.NewRows([]string{"user_id"}).AddRow(1))
-		mock.ExpectExec(regexp.QuoteMeta(sqlInsertUserIDSalt)).WithArgs(mockUser.UserID, salt).WillReturnResult(sqlmock.NewResult(1, 1))
+		expectExec(mock, sqlInsertUserIDSalt).WithArgs(mockUser.UserID, salt).WillReturnResult(sqlmock.NewResult(1, 1))
 		mock.ExpectCommit()
-		mock.ExpectQuery(regexp.QuoteMeta(sqlFindUserByID)).WithArgs(1).WillReturnRows(rows)
+		expectQuery(mock, sqlFindUserByID).WithArgs(1).WillReturnRows(rows)
 
 		createdUser, err := repo.Create(mockUser, salt)
 		require.NoError(t, err)
@@ -207,7 +213,7 @@ func TestCreate(t *testing.T) {
 		mockUser := mockUserObj()
 		salt := "some_salt"
 
-		mock.ExpectQuery(regexp.QuoteMeta(sqlIsUserExists)).WithArgs(mockUser.Email).WillReturnRows(sqlmock.NewRows([]string{"exists"}).AddRow(true))
+		expectQuery(mock, sqlIsUserExists).WithArgs(mockUser.Email).WillReturnRows(sqlmock.NewRows([]string{"exists"}).AddRow(true))
 
 		_, err = repo.Create(mockUser, salt)
 		require.Error(t, err)
@@ -218,9 +224,9 @@ func TestCreate(t *testing.T) {
 		mockUser := mockUserObj()
 		salt := "some_salt"
 
-		mock.ExpectQuery(regexp.QuoteMeta(sqlIsUserExists)).WithArgs(mockUser.Email).WillReturnRows(sqlmock.NewRows([]string{"exists"}).AddRow(false))
+		expectQuery(mock, sqlIsUserExists).WithArgs(mockUser.Email).WillReturnRows(sqlmock.NewRows([]string{"exists"}).AddRow(false))
 		mock.ExpectBegin()
-		mock.ExpectQuery(`^` + regexp.QuoteMeta(strings.TrimSpace(sqlInsertUserWithReturnID)) + `$`).WillReturnError(errors.New("db error"))
+		expectQuery(mock, sqlInsertUserWithReturnID).WillReturnError(errors.New("db error"))
 		mock.ExpectRollback()
 
 		_, err = repo.Create(mockUser, salt)
@@ -242,12 +248,12 @@ func TestUpdate(t *testing.T) {
 		updateUser.Email = "new@example.com"
 		rows := mockUserRows(updateUser)
 
-		mock.ExpectQuery(regexp.QuoteMeta(sqlFindUserByUUID)).WithArgs(existingUser.UserUUID).WillReturnRows(mockUserRows(existingUser))
-		mock.ExpectQuery(regexp.QuoteMeta(sqlIsUserExists)).WithArgs(updateUser.Email).WillReturnRows(sqlmock.NewRows([]string{"exists"}).AddRow(false))
-		mock.ExpectExec(regexp.QuoteMeta(sqlUpdateUser)).
+		expectQuery(mock, sqlFindUserByUUID).WithArgs(existingUser.UserUUID).WillReturnRows(mockUserRows(existingUser))
+		expectQuery(mock, sqlIsUserExists).WithArgs(updateUser.Email).WillReturnRows(sqlmock.NewRows([]string{"exists"}).AddRow(false))
+		expectExec(mock, sqlUpdateUser).
 			WithArgs(updateUser.Email, existingUser.PasswordHash, updateUser.FullName, updateUser.Phone, existingUser.SignUpOption, existingUser.UserID).
 			WillReturnResult(sqlmock.NewResult(1, 1))
-		mock.ExpectQuery(regexp.QuoteMeta(sqlFindUserByID)).WithArgs(existingUser.UserID).WillReturnRows(rows)
+		expectQuery(mock, sqlFindUserByID).WithArgs(existingUser.UserID).WillReturnRows(rows)
 
 		updatedUser, err := repo.Update(updateUser)
 		require.NoError(t, err)
@@ -258,7 +264,7 @@ func TestUpdate(t *testing.T) {
 	t.Run("User does not exist", func(t *testing.T) {
 		nonExistingUser := mockUserObj()
 
-		mock.ExpectQuery(regexp.QuoteMeta(sqlFindUserByUUID)).WithArgs(nonExistingUser.UserUUID).WillReturnError(sql.ErrNoRows)
+		expectQuery(mock, sqlFindUserByUUID).WithArgs(nonExistingUser.UserUUID).WillReturnError(sql.ErrNoRows)
 
 		_, err := repo.Update(nonExistingUser)
 		require.Error(t, err)
@@ -270,8 +276,8 @@ func TestUpdate(t *testing.T) {
 		updateUser := existingUser
 		updateUser.Email = "new@example.com"
 
-		mock.ExpectQuery(regexp.QuoteMeta(sqlFindUserByUUID)).WithArgs(existingUser.UserUUID).WillReturnRows(mockUserRows(existingUser))
-		mock.ExpectQuery(regexp.QuoteMeta(sqlIsUserExists)).WithArgs(updateUser.Email).WillReturnRows(sqlmock.NewRows([]string{"exists"}).AddRow(true))
+		expectQuery(mock, sqlFindUserByUUID).WithArgs(existingUser.UserUUID).WillReturnRows(mockUserRows(existingUser))
+		expectQuery(mock, sqlIsUserExists).WithArgs(updateUser.Email).WillReturnRows(sqlmock.NewRows([]string{"exists"}).AddRow(true))
 
 		_, err := repo.Update(updateUser)
 		require.Error(t, err)
