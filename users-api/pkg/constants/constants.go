@@ -5,11 +5,11 @@ const (
 	FullNameRegex    = `^[a-zA-Z\s]+$`
 	PhoneRegex       = `^\d{10,15}$`
 	TimezoneRegex    = `^(UTC|[A-Za-z]+(?:/[A-Za-z_]+)+)$`
+	UUIDRegex        = `^[a-fA-F0-9]{8}-[a-fA-F0-9]{4}-[1-5][a-fA-F0-9]{3}-[89abAB][a-fA-F0-9]{3}-[a-fA-F0-9]{12}$`
 	SignUpOptGoogle  = "google"
 	SignupOptGeneral = "general"
-	UUIDRegex        = `^[a-fA-F0-9]{8}-[a-fA-F0-9]{4}-[1-5][a-fA-F0-9]{3}-[89abAB][a-fA-F0-9]{3}-[a-fA-F0-9]{12}$`
 	UserStatusActive = "active"
 
-	// UserStatusInactive = "inactive"
-	// UserStatusDeleted  = "deleted"
+	UserStatusInactive = "inactive"
+	UserStatusDeleted  = "deleted"
 )

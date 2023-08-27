@@ -50,6 +50,8 @@ func StartUsersAPI() {
 		l.Fatalf("error applying migration: %v", err)
 	}
 
+	// generate.GenerateUsers(conn, 1000)
+
 	// wire up the handler
 	userRepositoryDB := domain.NewUserRepositoryDB(conn, l)
 	uh := UserHandlers{service.NewUserService(userRepositoryDB), l}

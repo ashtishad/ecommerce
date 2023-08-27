@@ -19,5 +19,3 @@ CREATE TABLE IF NOT EXISTS users
 );
 
 COMMIT;
-
--- ALTER SEQUENCE users_user_id_seq RESTART WITH 1;
