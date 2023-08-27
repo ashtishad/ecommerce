@@ -227,3 +227,53 @@ func TestCreate(t *testing.T) {
 		require.Error(t, err)
 	})
 }
+
+func TestUpdate(t *testing.T) {
+	db, mock, err := sqlmock.New()
+	require.NoError(t, err)
+	defer db.Close()
+
+	repo := NewUserRepositoryDB(db, log.New(os.Stdout, "test: ", log.LstdFlags))
+
+	// test case 1: user updated successfully
+	t.Run("User updated successfully", func(t *testing.T) {
+		existingUser := mockUserObj()
+		updateUser := existingUser
+		updateUser.Email = "new@example.com"
+		rows := mockUserRows(updateUser)
+
+		mock.ExpectQuery(regexp.QuoteMeta(sqlFindUserByUUID)).WithArgs(existingUser.UserUUID).WillReturnRows(mockUserRows(existingUser))
+		mock.ExpectQuery(regexp.QuoteMeta(sqlIsUserExists)).WithArgs(updateUser.Email).WillReturnRows(sqlmock.NewRows([]string{"exists"}).AddRow(false))
+		mock.ExpectExec(regexp.QuoteMeta(sqlUpdateUser)).
+			WithArgs(updateUser.Email, existingUser.PasswordHash, updateUser.FullName, updateUser.Phone, existingUser.SignUpOption, existingUser.UserID).
+			WillReturnResult(sqlmock.NewResult(1, 1))
+		mock.ExpectQuery(regexp.QuoteMeta(sqlFindUserByID)).WithArgs(existingUser.UserID).WillReturnRows(rows)
+
+		updatedUser, err := repo.Update(updateUser)
+		require.NoError(t, err)
+		require.Equal(t, updateUser.Email, updatedUser.Email)
+	})
+
+	// test case 2: user does not exist
+	t.Run("User does not exist", func(t *testing.T) {
+		nonExistingUser := mockUserObj()
+
+		mock.ExpectQuery(regexp.QuoteMeta(sqlFindUserByUUID)).WithArgs(nonExistingUser.UserUUID).WillReturnError(sql.ErrNoRows)
+
+		_, err := repo.Update(nonExistingUser)
+		require.Error(t, err)
+	})
+
+	// test case 3: email already exists
+	t.Run("Email already exists", func(t *testing.T) {
+		existingUser := mockUserObj()
+		updateUser := existingUser
+		updateUser.Email = "new@example.com"
+
+		mock.ExpectQuery(regexp.QuoteMeta(sqlFindUserByUUID)).WithArgs(existingUser.UserUUID).WillReturnRows(mockUserRows(existingUser))
+		mock.ExpectQuery(regexp.QuoteMeta(sqlIsUserExists)).WithArgs(updateUser.Email).WillReturnRows(sqlmock.NewRows([]string{"exists"}).AddRow(true))
+
+		_, err := repo.Update(updateUser)
+		require.Error(t, err)
+	})
+}
