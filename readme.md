@@ -15,7 +15,7 @@
 
 ### Design Decisions(V1)
 
-###### General
+###### Frameworks/Concepts
 
 * Software Architecture: Hexagonal(ports and adapters).
 * Api Architecture Style: Restful API.
@@ -25,7 +25,7 @@
 * Containerization: Docker.
 * CI/CD: GitHub Actions.
 * Event Bus: Apache Kafka.
-* Relational DB Preference: PostgreSQL/MySQL.
+* Relational DB Preference: PostgreSQL.
 * Document Based/NoSQL DB: MongoDB.
 * Cache preference: Redis.
 
@@ -83,7 +83,7 @@
 
 ###### Clone using ssh protocol `git clone git@github.com:ashtishad/ecommerce.git`
 
-To run the application, you have to define the environment variables, default values of the variables are defined inside `start.sh`
+Change environment variables in Makefile: Set values in Makefile stored in project root.
 
 - SERVER_ADDRESS    `[IP Address of the machine]` : `localhost`
 - SERVER_PORT       `[Port of the machine]` : `8000`
@@ -92,10 +92,10 @@ To run the application, you have to define the environment variables, default va
 - DB_ADDR           `[IP address of the database]` : `localhost`
 - DB_PORT           `[Port of the database]` : `5432`
 - DB_NAME           `[Name of the database]` : `ecommerce`
+- POSTGRESQL_URL    `[Postgres DB Connection URL for golang-migrate cli]`
 
 ###### Postgres Database Setup
 
-* Change environment variables in Makefile: Set values in Makefile stored in project root.
 * Run docker compose: Bring the container up with `docker compose up`. Configurations are in `compose.yaml` file.
 * (optional) Remove databases and volumes:
   ```
@@ -153,19 +153,6 @@ curl --location --request PUT 'localhost:8000/users/{user_id}' \
     "phone": "1234567890"
 	
 }
-'
-```
-
-###### Check Existing User by Email and Password
-
-```
-
-curl --location 'localhost:8000/existing-user' \
---header 'Content-Type: application/json' \
---data-raw '{
-"email": "keanu_reeves@gmail.com",
-"password": "seepasword"
-}'
 
 ```
 

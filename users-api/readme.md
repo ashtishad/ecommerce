@@ -76,17 +76,5 @@ curl --location --request PUT 'localhost:8000/users/{user_id}' \
 	
 }
 '
-```
-
-###### Check Existing User by Email and Password
-
-```
-
-curl --location 'localhost:8000/existing-user' \
---header 'Content-Type: application/json' \
---data-raw '{
-"email": "keanu_reeves@gmail.com",
-"password": "seepasword"
-}'
 
 ```
