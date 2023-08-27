@@ -118,7 +118,7 @@ func (d UserRepositoryDB) findUserByUUID(userUUID string) (User, error) {
 			// d.l.Println(err.Error())
 			return User{}, err
 		}
-		return User{}, fmt.Errorf("error scanning user data: %v", err)
+		return User{}, fmt.Errorf("error scanning user data by uuid: %v", err)
 	}
 
 	return user, nil
