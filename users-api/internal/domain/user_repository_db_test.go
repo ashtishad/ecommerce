@@ -6,10 +6,35 @@ import (
 	"github.com/DATA-DOG/go-sqlmock"
 	"github.com/ashtishad/ecommerce/users-api/pkg/constants"
 	"github.com/stretchr/testify/require"
+	"log"
+	"os"
 	"regexp"
+	"strings"
 	"testing"
 	"time"
 )
+
+// helper functions
+func mockUserObj() User {
+	return User{
+		UserID:       1,
+		UserUUID:     "some-uuid",
+		Email:        "test@example.com",
+		PasswordHash: "hashed_password",
+		FullName:     "Test User",
+		Phone:        "1234567890",
+		SignUpOption: "general",
+		Status:       "active",
+		Timezone:     "UTC",
+		CreatedAt:    time.Now(),
+		UpdatedAt:    time.Now(),
+	}
+}
+
+func mockUserRows(user User) *sqlmock.Rows {
+	return sqlmock.NewRows([]string{"user_id", "user_uuid", "email", "password_hash", "full_name", "phone", "sign_up_option", "status", "timezone", "created_at", "updated_at"}).
+		AddRow(user.UserID, user.UserUUID, user.Email, user.PasswordHash, user.FullName, user.Phone, user.SignUpOption, user.Status, user.Timezone, user.CreatedAt, user.UpdatedAt)
+}
 
 // TestIsUserExist s checking that the isUserExist function correctly constructs and runs an SQL query to check
 // whether a user with a given email exists. It's testing that the function runs without errors, and that it returns
@@ -25,9 +50,9 @@ func TestIsUserExist(t *testing.T) {
 	repo := NewUserRepositoryDB(db, nil)
 
 	email := "test@example.com"
-	// escaping the parentheses in the expected query
-	query := "SELECT EXISTS\\(SELECT 1 FROM users WHERE email = \\$1\\)"
-	mock.ExpectQuery(query).WithArgs(email).WillReturnRows(sqlmock.NewRows([]string{"exists"}).AddRow(true))
+
+	escapedSQL := regexp.QuoteMeta(sqlIsUserExists)
+	mock.ExpectQuery(escapedSQL).WithArgs(email).WillReturnRows(sqlmock.NewRows([]string{"exists"}).AddRow(true))
 
 	exists, err := repo.isUserExist(email)
 
@@ -147,4 +172,58 @@ func TestFindUserByUUID(t *testing.T) {
 	require.Error(t, err)
 	require.Equal(t, expectedError.Error(), err.Error())
 	require.Equal(t, User{}, user)
+}
+
+func TestCreate(t *testing.T) {
+	db, mock, err := sqlmock.New()
+	require.NoError(t, err)
+	defer db.Close()
+
+	repo := NewUserRepositoryDB(db, log.New(os.Stdout, "test: ", log.LstdFlags))
+
+	// test case 1: user created successfully
+	t.Run("User created successfully", func(t *testing.T) {
+		mockUser := mockUserObj()
+		salt := "some_salt"
+		rows := mockUserRows(mockUser)
+
+		mock.ExpectQuery(regexp.QuoteMeta(sqlIsUserExists)).WithArgs(mockUser.Email).WillReturnRows(sqlmock.NewRows([]string{"exists"}).AddRow(false))
+		mock.ExpectBegin()
+		mock.ExpectQuery(`^`+regexp.QuoteMeta(strings.TrimSpace(sqlInsertUserWithReturnID))+`$`).
+			WithArgs(mockUser.Email, mockUser.PasswordHash, mockUser.FullName, mockUser.Phone, mockUser.SignUpOption, mockUser.Timezone).
+			WillReturnRows(sqlmock.NewRows([]string{"user_id"}).AddRow(1))
+		mock.ExpectExec(regexp.QuoteMeta(sqlInsertUserIDSalt)).WithArgs(mockUser.UserID, salt).WillReturnResult(sqlmock.NewResult(1, 1))
+		mock.ExpectCommit()
+		mock.ExpectQuery(regexp.QuoteMeta(sqlFindUserByID)).WithArgs(1).WillReturnRows(rows)
+
+		createdUser, err := repo.Create(mockUser, salt)
+		require.NoError(t, err)
+		require.Equal(t, mockUser.UserID, createdUser.UserID)
+		require.Equal(t, mockUser.Email, createdUser.Email)
+	})
+
+	// test case 2: user already exists
+	t.Run("User already exists", func(t *testing.T) {
+		mockUser := mockUserObj()
+		salt := "some_salt"
+
+		mock.ExpectQuery(regexp.QuoteMeta(sqlIsUserExists)).WithArgs(mockUser.Email).WillReturnRows(sqlmock.NewRows([]string{"exists"}).AddRow(true))
+
+		_, err = repo.Create(mockUser, salt)
+		require.Error(t, err)
+	})
+
+	// test case 3: database error during user creation
+	t.Run("Database error during user creation", func(t *testing.T) {
+		mockUser := mockUserObj()
+		salt := "some_salt"
+
+		mock.ExpectQuery(regexp.QuoteMeta(sqlIsUserExists)).WithArgs(mockUser.Email).WillReturnRows(sqlmock.NewRows([]string{"exists"}).AddRow(false))
+		mock.ExpectBegin()
+		mock.ExpectQuery(`^` + regexp.QuoteMeta(strings.TrimSpace(sqlInsertUserWithReturnID)) + `$`).WillReturnError(errors.New("db error"))
+		mock.ExpectRollback()
+
+		_, err = repo.Create(mockUser, salt)
+		require.Error(t, err)
+	})
 }
