@@ -111,8 +111,10 @@ To run the application, you have to define the environment variables, default va
 
 #### Project Structure
 ```
+├── .github/workflows               <-- Github CI workflows(Build, Test, Lint).
 ├── assets                          <-- For project root specific static assets.
-├── lib                             <-- Common files shared between services(error library, logging, ginconfig etc)
+├── config                          <-- Database initialization on docker compose.
+├── db/migrations                   <-- Postgres DB migrations scripts for golang-migrate.
 ├── users-api                       <-- Users API microservice.
 ├── auth-api                        <-- Auth API microservice.
 ├── compose.yaml                    <-- Docker services setup(databases)
