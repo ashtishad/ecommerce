@@ -76,7 +76,7 @@ func (d *UserRepositoryDB) Update(user User) (*User, error) {
 			return nil, err
 		}
 		if exists {
-			return nil, fmt.Errorf("user already exist with email : %s", existingUser.Email)
+			return nil, fmt.Errorf("user already exist with email : %s", user.Email)
 		}
 	}
 
