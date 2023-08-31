@@ -3,9 +3,11 @@ package app
 import (
 	"github.com/ashtishad/ecommerce/users-api/internal/domain"
 	"github.com/ashtishad/ecommerce/users-api/internal/service"
+	"github.com/ashtishad/ecommerce/users-api/pkg/constants"
 	"github.com/gin-gonic/gin"
 	"log"
 	"net/http"
+	"strconv"
 )
 
 type UserHandlers struct {
@@ -61,4 +63,29 @@ func (us *UserHandlers) updateUserHandler(c *gin.Context) {
 	}
 
 	c.JSON(http.StatusOK, userResponse)
+}
+
+// GetUsersHandler handles the GET request to fetch all users
+func (us *UserHandlers) GetUsersHandler(c *gin.Context) {
+	var opts domain.FindAllUsersOptions
+	fromIDInt, _ := strconv.Atoi(c.DefaultQuery("fromID", "0"))
+	pageSizeInt, _ := strconv.Atoi(c.DefaultQuery("pageSize", constants.DefaultPageSizeString))
+	opts.FromID = fromIDInt
+	opts.PageSize = pageSizeInt
+	opts.Status = c.DefaultQuery("status", "")
+	opts.SignUpOption = c.DefaultQuery("signUpOption", "")
+	opts.Timezone = c.DefaultQuery("timezone", "")
+
+	users, pageInfo, err := us.service.GetAllUsers(opts)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{
+			"error": "Unable to retrieve users",
+		})
+		return
+	}
+
+	c.JSON(http.StatusOK, gin.H{
+		"users":     users,
+		"page_info": pageInfo,
+	})
 }

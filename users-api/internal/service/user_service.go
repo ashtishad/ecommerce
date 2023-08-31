@@ -10,6 +10,7 @@ import (
 type UserService interface {
 	NewUser(request domain.NewUserRequestDTO) (*domain.UserResponseDTO, error)
 	UpdateUser(request domain.UpdateUserRequestDTO) (*domain.UserResponseDTO, error)
+	GetAllUsers(request domain.FindAllUsersOptions) (*[]domain.UserResponseDTO, *domain.NextPageInfo, error)
 }
 
 type DefaultUserService struct {
@@ -97,4 +98,38 @@ func (service *DefaultUserService) UpdateUser(request domain.UpdateUserRequestDT
 	}
 
 	return userResponseDTO, nil
+}
+
+func (service *DefaultUserService) GetAllUsers(request domain.FindAllUsersOptions) (*[]domain.UserResponseDTO, *domain.NextPageInfo, error) {
+	opts := domain.FindAllUsersOptions{
+		FromID:       request.FromID,
+		PageSize:     request.PageSize,
+		Status:       request.Status,
+		SignUpOption: request.SignUpOption,
+		Timezone:     request.Timezone,
+	}
+
+	users, nextPageInfo, err := service.repo.FindAll(opts)
+	if err != nil {
+		return nil, nil, err
+	}
+
+	var userDTOs []domain.UserResponseDTO
+
+	for _, u := range *users {
+		userResponseDTO := domain.UserResponseDTO{
+			UserUUID:     u.UserUUID,
+			Email:        u.Email,
+			FullName:     u.FullName,
+			Phone:        u.Phone,
+			SignUpOption: u.SignUpOption,
+			Status:       u.Status,
+			Timezone:     u.Timezone,
+			CreatedAt:    u.CreatedAt,
+			UpdatedAt:    u.UpdatedAt,
+		}
+		userDTOs = append(userDTOs, userResponseDTO)
+	}
+
+	return &userDTOs, nextPageInfo, nil
 }

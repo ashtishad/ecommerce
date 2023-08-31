@@ -133,3 +133,85 @@ func (d *UserRepositoryDB) isUserExist(email string) (bool, error) {
 	}
 	return exists, nil
 }
+
+// FindAll retrieves all users from the database with optional filters
+func (d *UserRepositoryDB) FindAll(opts FindAllUsersOptions) (*[]User, *NextPageInfo, error) {
+	var users []User
+	var nextPageInfo NextPageInfo
+
+	baseQuery := "SELECT * FROM users WHERE user_id > $1 "
+	countQuery := "SELECT COUNT(*) FROM users WHERE user_id > $1 "
+
+	args := []interface{}{opts.FromID}
+	argCount := 2
+
+	if opts.Status != "" {
+		baseQuery += fmt.Sprintf("AND status = $%d ", argCount)
+		countQuery += fmt.Sprintf("AND status = $%d ", argCount)
+		args = append(args, opts.Status)
+		argCount++
+	}
+
+	if opts.SignUpOption != "" {
+		baseQuery += fmt.Sprintf("AND sign_up_option = $%d ", argCount)
+		countQuery += fmt.Sprintf("AND sign_up_option = $%d ", argCount)
+		args = append(args, opts.SignUpOption)
+		argCount++
+	}
+
+	if opts.Timezone != "" {
+		baseQuery += fmt.Sprintf("AND timezone = $%d ", argCount)
+		countQuery += fmt.Sprintf("AND timezone = $%d ", argCount)
+		args = append(args, opts.Timezone)
+		argCount++
+	}
+
+	baseQuery += fmt.Sprintf("LIMIT $%d", argCount)
+	args = append(args, opts.PageSize)
+
+	rows, err := d.db.Query(baseQuery, args...)
+	if err != nil {
+		return nil, nil, err
+	}
+	defer func(rows *sql.Rows) {
+		rowsClsErr := rows.Close()
+		if rowsClsErr != nil {
+			d.l.Printf("error closing rows in find all users: %s", rowsClsErr.Error())
+			return
+		}
+	}(rows)
+
+	for rows.Next() {
+		var user User
+		if err := rows.Scan(
+			&user.UserID,
+			&user.UserUUID,
+			&user.Email,
+			&user.PasswordHash,
+			&user.FullName,
+			&user.Phone,
+			&user.SignUpOption,
+			&user.Status,
+			&user.Timezone,
+			&user.CreatedAt,
+			&user.UpdatedAt,
+		); err != nil {
+			d.l.Printf("error scanning rows in find all users %s", err.Error())
+			return nil, nil, errors.New("error scanning rows in find all users")
+		}
+		users = append(users, user)
+	}
+
+	var totalCount int
+	if err := d.db.QueryRow(countQuery, args[:argCount-1]...).Scan(&totalCount); err != nil {
+		d.l.Printf("error scanning rows in find all users %s", err.Error())
+		return nil, nil, errors.New("error calculating total rows in find all users")
+	}
+
+	nextPageInfo.HasNextPage = totalCount > opts.FromID+opts.PageSize
+	nextPageInfo.StartCursor = opts.FromID
+	nextPageInfo.EndCursor = opts.FromID + opts.PageSize - 1
+	nextPageInfo.TotalCount = totalCount
+
+	return &users, &nextPageInfo, nil
+}

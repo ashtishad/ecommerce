@@ -12,4 +12,6 @@ const (
 
 	UserStatusInactive = "inactive"
 	UserStatusDeleted  = "deleted"
+
+	DefaultPageSizeString = "20"
 )
