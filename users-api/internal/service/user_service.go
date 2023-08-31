@@ -16,14 +16,14 @@ type DefaultUserService struct {
 	repo domain.UserRepository
 }
 
-func NewUserService(repository domain.UserRepository) DefaultUserService {
-	return DefaultUserService{repository}
+func NewUserService(repository domain.UserRepository) *DefaultUserService {
+	return &DefaultUserService{repository}
 }
 
 // NewUser first generate a salt, hashedPassword, then creates a domain model from request dto,
 // then Calls the repository to save(create/update) the new user, get the user model if everything okay, otherwise returns error
 // Finally returns UserResponseDTO.
-func (service DefaultUserService) NewUser(request domain.NewUserRequestDTO) (*domain.UserResponseDTO, error) {
+func (service *DefaultUserService) NewUser(request domain.NewUserRequestDTO) (*domain.UserResponseDTO, error) {
 	if err := validateCreateUserInput(request); err != nil {
 		return nil, err
 	}
@@ -65,7 +65,7 @@ func (service DefaultUserService) NewUser(request domain.NewUserRequestDTO) (*do
 	return userResponseDTO, nil
 }
 
-func (service DefaultUserService) UpdateUser(request domain.UpdateUserRequestDTO) (*domain.UserResponseDTO, error) {
+func (service *DefaultUserService) UpdateUser(request domain.UpdateUserRequestDTO) (*domain.UserResponseDTO, error) {
 	if err := validateUpdateUserInput(request); err != nil {
 		return nil, err
 	}
