@@ -100,7 +100,7 @@ func TestFindUserByID(t *testing.T) {
 	user, err := repo.findUserByID(userID)
 
 	require.NoError(t, err)
-	require.Equal(t, mockUser, user)
+	require.Equal(t, mockUser, *user)
 
 	// Test case 2: user does not exist
 	userID = 999
@@ -110,7 +110,7 @@ func TestFindUserByID(t *testing.T) {
 
 	require.Error(t, err)
 	require.True(t, errors.Is(err, sql.ErrNoRows))
-	require.Equal(t, User{}, user)
+	require.Nil(t, user)
 
 	// Test case 3: internal error occurs
 	userID = 500
@@ -121,7 +121,7 @@ func TestFindUserByID(t *testing.T) {
 
 	require.Error(t, err)
 	require.Equal(t, expectedError.Error(), err.Error())
-	require.Equal(t, User{}, user)
+	require.Nil(t, user)
 }
 
 func TestFindUserByUUID(t *testing.T) {
@@ -156,7 +156,7 @@ func TestFindUserByUUID(t *testing.T) {
 	user, err := repo.findUserByUUID(UserUUID)
 
 	require.NoError(t, err)
-	require.Equal(t, mockUser, user)
+	require.Equal(t, mockUser, *user)
 
 	// Test case 2: user does not exist
 	UserUUID = "7b96a2fb-3fdf-43a6-b09a-a82169286fdf"
@@ -166,7 +166,7 @@ func TestFindUserByUUID(t *testing.T) {
 
 	require.Error(t, err)
 	require.True(t, errors.Is(err, sql.ErrNoRows))
-	require.Equal(t, User{}, user)
+	require.Nil(t, user)
 
 	// Test case 3: internal error occurs
 	UserUUID = "da7ccd97-686e-444c-93c6-6bef23e6a401"
@@ -177,7 +177,7 @@ func TestFindUserByUUID(t *testing.T) {
 
 	require.Error(t, err)
 	require.Equal(t, expectedError.Error(), err.Error())
-	require.Equal(t, User{}, user)
+	require.Nil(t, user)
 }
 
 func TestCreate(t *testing.T) {
@@ -204,8 +204,14 @@ func TestCreate(t *testing.T) {
 
 		createdUser, err := repo.Create(mockUser, salt)
 		require.NoError(t, err)
-		require.Equal(t, mockUser.UserID, createdUser.UserID)
+		require.NotNil(t, createdUser)
+
 		require.Equal(t, mockUser.Email, createdUser.Email)
+		require.Equal(t, mockUser.FullName, createdUser.FullName)
+		require.Equal(t, mockUser.Phone, createdUser.Phone)
+		require.Equal(t, mockUser.SignUpOption, createdUser.SignUpOption)
+		require.Equal(t, mockUser.Status, createdUser.Status)
+		require.Equal(t, mockUser.Timezone, createdUser.Timezone)
 	})
 
 	// test case 2: user already exists
