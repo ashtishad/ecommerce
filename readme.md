@@ -132,32 +132,6 @@ Change environment variables in Makefile: Set values in Makefile stored in proje
     Outgoing : RepositoryDB --(Domain Object)-> Service --(DTO)-> REST Handlers --(JSON)-> Client
 
 
-#### Example Requests(Users-API routes)
-
-###### Create a user
-
-```
-curl --location 'localhost:8000/users' \
---header 'Content-Type: application/json' \
---data-raw '{"email":"keanu_reeves@gmail.com","full_name":"Keanu Reeves","password":"secrpsswrd","phone":"1234567890","sign_up_option":"general"}'
-```
-
-###### Update a user
-
-```
-curl --location --request PUT 'localhost:8000/users/{user_id}' \
---header 'Content-Type: application/json' \
---data-raw '{
-	"email": "keanu_reeves@gmail.com",
-	"full_name": "John Wick",
-    "phone": "1234567890"
-	
-}
-
-```
-
-
-
 
 ###### Hexagonal Architecture
 
