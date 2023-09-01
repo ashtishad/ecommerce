@@ -10,19 +10,25 @@ type APIError interface {
 	Error() string
 
 	Wrap(err error) APIError
+
+	StatusCode() int
 }
 
 // apiError is a concrete implementation of the APIError interface.
 type apiError struct {
 	Message string        `json:"message"`
-	Status  int           `json:"status"`
+	Code    int           `json:"status"`
 	Causes  []interface{} `json:"causes"`
+}
+
+func (e apiError) StatusCode() int {
+	return e.Code
 }
 
 // Error implements the error interface.
 func (e apiError) Error() string {
 	return fmt.Sprintf("message: %s - status: %d - causes: %v",
-		e.Message, e.Status, e.Causes)
+		e.Message, e.Code, e.Causes)
 }
 
 // Wrap wraps an existing error into an APIError.
@@ -41,7 +47,7 @@ func (e apiError) Wrap(err error) APIError {
 func NewBadRequestError(message string) APIError {
 	return apiError{
 		Message: message,
-		Status:  http.StatusBadRequest,
+		Code:    http.StatusBadRequest,
 	}
 }
 
@@ -53,7 +59,7 @@ func NewBadRequestError(message string) APIError {
 func NewNotFoundError(message string) APIError {
 	return apiError{
 		Message: message,
-		Status:  http.StatusNotFound,
+		Code:    http.StatusNotFound,
 	}
 }
 
@@ -65,7 +71,7 @@ func NewNotFoundError(message string) APIError {
 func NewUnauthorizedError(message string) APIError {
 	return apiError{
 		Message: message,
-		Status:  http.StatusUnauthorized,
+		Code:    http.StatusUnauthorized,
 	}
 }
 
@@ -77,7 +83,7 @@ func NewUnauthorizedError(message string) APIError {
 func NewUnexpectedError(message string) APIError {
 	return apiError{
 		Message: message,
-		Status:  http.StatusInternalServerError,
+		Code:    http.StatusInternalServerError,
 	}
 }
 
@@ -89,7 +95,7 @@ func NewUnexpectedError(message string) APIError {
 func NewInternalServerError(message string, err error) APIError {
 	result := apiError{
 		Message: message,
-		Status:  http.StatusInternalServerError,
+		Code:    http.StatusInternalServerError,
 	}
 	if err != nil {
 		result.Causes = append(result.Causes, err.Error())

@@ -96,6 +96,7 @@ func validateFindAllUsersOpts(input domain.FindAllUsersOptionsDTO) (*domain.Find
 		if matched := regexp.MustCompile(constants.StatusRegex).MatchString(input.Status); !matched {
 			return nil, fmt.Errorf("user status must be 'active', 'inactive', or 'deleted', you entered: %s", input.Status)
 		}
+		opts.Status = input.Status
 	}
 
 	if input.SignUpOption != "" {

@@ -30,7 +30,7 @@ func (us *UserHandlers) createUserHandler(c *gin.Context) {
 	userResponse, err := us.service.NewUser(newUserRequest)
 	if err != nil {
 		us.l.Println(err.Error())
-		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		c.JSON(err.StatusCode(), err)
 		return
 	}
 
@@ -56,7 +56,7 @@ func (us *UserHandlers) updateUserHandler(c *gin.Context) {
 	userResponse, err := us.service.UpdateUser(updateUserRequest)
 	if err != nil {
 		us.l.Println(err.Error())
-		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		c.JSON(err.StatusCode(), err)
 		return
 	}
 
@@ -75,9 +75,7 @@ func (us *UserHandlers) GetUsersHandler(c *gin.Context) {
 	users, pageInfo, err := us.service.GetAllUsers(opts)
 	if err != nil {
 		us.l.Println(err.Error())
-		c.JSON(http.StatusInternalServerError, gin.H{
-			"error": "unable to retrieve users",
-		})
+		c.JSON(err.StatusCode(), err)
 		return
 	}
 

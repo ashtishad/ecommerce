@@ -24,7 +24,7 @@ func (d *UserRepositoryDB) Create(user User, salt string) (*User, lib.APIError) 
 		return nil, apiErr
 	}
 	if exists {
-		return nil, lib.NewBadRequestError(fmt.Sprintf("user exists with this updated email: %s", user.Email))
+		return nil, lib.NewBadRequestError(fmt.Sprintf("user exists with this email: %s", user.Email))
 	}
 
 	tx, err := d.db.Begin()
