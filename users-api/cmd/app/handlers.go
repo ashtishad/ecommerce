@@ -3,7 +3,6 @@ package app
 import (
 	"github.com/ashtishad/ecommerce/users-api/internal/domain"
 	"github.com/ashtishad/ecommerce/users-api/internal/service"
-	"github.com/ashtishad/ecommerce/users-api/pkg/constants"
 	"github.com/gin-gonic/gin"
 	"log"
 	"net/http"
@@ -68,15 +67,16 @@ func (us *UserHandlers) updateUserHandler(c *gin.Context) {
 func (us *UserHandlers) GetUsersHandler(c *gin.Context) {
 	var opts domain.FindAllUsersOptionsDTO
 	opts.FromIDStr = c.Query("fromID")
-	opts.PageSizeStr = c.DefaultQuery("pageSize", constants.DefaultPageSizeString)
-	opts.Status = c.DefaultQuery("status", constants.UserStatusActive)
+	opts.PageSizeStr = c.Query("pageSize")
+	opts.Status = c.Query("status")
 	opts.SignUpOption = c.Query("signUpOption")
 	opts.Timezone = c.Query("timezone")
 
 	users, pageInfo, err := us.service.GetAllUsers(opts)
 	if err != nil {
+		us.l.Println(err.Error())
 		c.JSON(http.StatusInternalServerError, gin.H{
-			"error": "Unable to retrieve users",
+			"error": "unable to retrieve users",
 		})
 		return
 	}

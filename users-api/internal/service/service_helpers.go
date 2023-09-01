@@ -77,33 +77,49 @@ func validateUpdateUserInput(input domain.UpdateUserRequestDTO) error {
 	return nil
 }
 
+// validateFindAllUsersOpts validates query params, and returns domain.FindAllUsersOptions
+// sets default pageSize and status if provided empty
 func validateFindAllUsersOpts(input domain.FindAllUsersOptionsDTO) (*domain.FindAllUsersOptions, error) {
-	if matched := regexp.MustCompile(constants.TimezoneRegex).MatchString(input.Timezone); !matched {
-		return nil, fmt.Errorf("timezone will be in 'UTC' or 'Asia/Dhaka' format, you entered: %s", input.Timezone)
+	opts := &domain.FindAllUsersOptions{
+		PageSize: constants.DefaultPageSize,
+		Status:   constants.UserStatusActive,
 	}
 
-	if matched := regexp.MustCompile(constants.StatusRegex).MatchString(input.Status); !matched {
-		return nil, fmt.Errorf("user status must be 'active', 'inactive', or 'deleted', you entered: %s", input.Status)
+	if input.Timezone != "" {
+		if matched := regexp.MustCompile(constants.TimezoneRegex).MatchString(input.Timezone); !matched {
+			return nil, fmt.Errorf("timezone must be in 'UTC' or 'Asia/Dhaka' format, you entered: %s", input.Timezone)
+		}
+		opts.Timezone = input.Timezone
 	}
 
-	if matched := regexp.MustCompile(constants.SignUpOptionRegex).MatchString(input.SignUpOption); !matched {
-		return nil, fmt.Errorf("signUpOption must be 'general' or 'google', you entered: %s", input.SignUpOption)
+	if input.Status != "" {
+		if matched := regexp.MustCompile(constants.StatusRegex).MatchString(input.Status); !matched {
+			return nil, fmt.Errorf("user status must be 'active', 'inactive', or 'deleted', you entered: %s", input.Status)
+		}
 	}
 
-	fromID, err := strconv.Atoi(input.FromIDStr)
-	if err != nil || fromID < 0 {
-		return nil, fmt.Errorf("invalid FromID: must be a non-negative decimal number, you entered: %s", input.FromIDStr)
+	if input.SignUpOption != "" {
+		if matched := regexp.MustCompile(constants.SignUpOptionRegex).MatchString(input.SignUpOption); !matched {
+			return nil, fmt.Errorf("signUpOption must be 'general' or 'google', you entered: %s", input.SignUpOption)
+		}
+		opts.SignUpOption = input.SignUpOption
 	}
 
-	pageSize, err := strconv.Atoi(input.PageSizeStr)
-	if err != nil || pageSize < 20 || pageSize > 100 {
-		return nil, fmt.Errorf("invalid PageSize: must be between 20 and 100, you entered: %s", input.PageSizeStr)
+	if input.FromIDStr != "" {
+		fromID, err := strconv.Atoi(input.FromIDStr)
+		if err != nil || fromID < 0 {
+			return nil, fmt.Errorf("invalid FromID: must be a non-negative decimal number, you entered: %s", input.FromIDStr)
+		}
+		opts.FromID = fromID
 	}
-	return &domain.FindAllUsersOptions{
-		FromID:       fromID,
-		PageSize:     pageSize,
-		Status:       input.Status,
-		SignUpOption: input.SignUpOption,
-		Timezone:     input.Timezone,
-	}, nil
+
+	if input.PageSizeStr != "" {
+		pageSize, err := strconv.Atoi(input.PageSizeStr)
+		if err != nil || pageSize < 20 || pageSize > 100 {
+			return nil, fmt.Errorf("invalid PageSize: must be between 20 and 100, you entered: %s", input.PageSizeStr)
+		}
+		opts.PageSize = pageSize
+	}
+
+	return opts, nil
 }
