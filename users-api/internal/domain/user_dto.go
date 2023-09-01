@@ -37,6 +37,15 @@ type UpdateUserRequestDTO struct {
 	Timezone string `json:"timezone"`
 }
 
+// FindAllUsersOptionsDTO is filters for FindAll Users
+type FindAllUsersOptionsDTO struct {
+	FromIDStr    string // query param
+	PageSizeStr  string // query param
+	Status       string
+	SignUpOption string
+	Timezone     string
+}
+
 // ToUserResponseDTO converts a User to a UserResponseDTO
 func (u *User) ToUserResponseDTO() *UserResponseDTO {
 	return &UserResponseDTO{

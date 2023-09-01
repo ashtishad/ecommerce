@@ -10,7 +10,7 @@ import (
 type UserService interface {
 	NewUser(request domain.NewUserRequestDTO) (*domain.UserResponseDTO, error)
 	UpdateUser(request domain.UpdateUserRequestDTO) (*domain.UserResponseDTO, error)
-	GetAllUsers(request domain.FindAllUsersOptions) (*[]domain.UserResponseDTO, *domain.NextPageInfo, error)
+	GetAllUsers(request domain.FindAllUsersOptionsDTO) (*[]domain.UserResponseDTO, *domain.NextPageInfo, error)
 }
 
 type DefaultUserService struct {
@@ -80,16 +80,13 @@ func (service *DefaultUserService) UpdateUser(request domain.UpdateUserRequestDT
 	return userResponseDTO, nil
 }
 
-func (service *DefaultUserService) GetAllUsers(request domain.FindAllUsersOptions) (*[]domain.UserResponseDTO, *domain.NextPageInfo, error) {
-	opts := domain.FindAllUsersOptions{
-		FromID:       request.FromID,
-		PageSize:     request.PageSize,
-		Status:       request.Status,
-		SignUpOption: request.SignUpOption,
-		Timezone:     request.Timezone,
+func (service *DefaultUserService) GetAllUsers(request domain.FindAllUsersOptionsDTO) (*[]domain.UserResponseDTO, *domain.NextPageInfo, error) {
+	opts, err := validateFindAllUsersOpts(request)
+	if err != nil {
+		return nil, nil, err
 	}
 
-	users, nextPageInfo, err := service.repo.FindAll(opts)
+	users, nextPageInfo, err := service.repo.FindAll(*opts)
 	if err != nil {
 		return nil, nil, err
 	}

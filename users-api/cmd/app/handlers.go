@@ -7,7 +7,6 @@ import (
 	"github.com/gin-gonic/gin"
 	"log"
 	"net/http"
-	"strconv"
 )
 
 type UserHandlers struct {
@@ -67,14 +66,12 @@ func (us *UserHandlers) updateUserHandler(c *gin.Context) {
 
 // GetUsersHandler handles the GET request to fetch all users
 func (us *UserHandlers) GetUsersHandler(c *gin.Context) {
-	var opts domain.FindAllUsersOptions
-	fromIDInt, _ := strconv.Atoi(c.DefaultQuery("fromID", "0"))
-	pageSizeInt, _ := strconv.Atoi(c.DefaultQuery("pageSize", constants.DefaultPageSizeString))
-	opts.FromID = fromIDInt
-	opts.PageSize = pageSizeInt
-	opts.Status = c.DefaultQuery("status", "")
-	opts.SignUpOption = c.DefaultQuery("signUpOption", "")
-	opts.Timezone = c.DefaultQuery("timezone", "")
+	var opts domain.FindAllUsersOptionsDTO
+	opts.FromIDStr = c.Query("fromID")
+	opts.PageSizeStr = c.DefaultQuery("pageSize", constants.DefaultPageSizeString)
+	opts.Status = c.DefaultQuery("status", constants.UserStatusActive)
+	opts.SignUpOption = c.Query("signUpOption")
+	opts.Timezone = c.Query("timezone")
 
 	users, pageInfo, err := us.service.GetAllUsers(opts)
 	if err != nil {
