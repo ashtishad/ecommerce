@@ -184,7 +184,7 @@ func (d *UserRepositoryDB) FindAll(opts FindAllUsersOptions) ([]User, *NextPageI
 
 	for rows.Next() {
 		var user User
-		if err := rows.Scan(
+		if err = rows.Scan(
 			&user.UserID,
 			&user.UserUUID,
 			&user.Email,
@@ -197,7 +197,6 @@ func (d *UserRepositoryDB) FindAll(opts FindAllUsersOptions) ([]User, *NextPageI
 			&user.CreatedAt,
 			&user.UpdatedAt,
 		); err != nil {
-			d.l.Printf("error scanning rows in find all users %s", err.Error())
 			return nil, nil, errors.New("error scanning rows in find all users")
 		}
 		users = append(users, user)
@@ -220,7 +219,6 @@ func (d *UserRepositoryDB) FindAll(opts FindAllUsersOptions) ([]User, *NextPageI
 
 	var totalCount int
 	if err = d.db.QueryRow(countQuery, args[:argCount-1]...).Scan(&totalCount); err != nil {
-		d.l.Printf("error scanning rows in find all users %s", err.Error())
 		return nil, nil, errors.New("error calculating total rows in find all users")
 	}
 
