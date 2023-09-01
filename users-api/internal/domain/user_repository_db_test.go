@@ -180,6 +180,15 @@ func TestFindUserByUUID(t *testing.T) {
 	require.Nil(t, user)
 }
 
+// TestCreate performs unit tests with mocking on the Create method of UserRepositoryDB.
+//
+// Test Scenarios:
+// - User created successfully: Validates that the function correctly creates a new user, commits the transaction, and returns the created user object.
+// - User already exists: Tests that the function returns an error when attempting to create a user with an email that already exists.
+// - Database error during user creation: Ensures that the function returns an error when a database error occurs, and rolls back the transaction.
+//
+// Each test case uses sqlmock to simulate database interactions,
+// and the require package for assertions to ensure that the behavior is as expected.
 func TestCreate(t *testing.T) {
 	db, mock, err := sqlmock.New()
 	require.NoError(t, err)
@@ -187,7 +196,6 @@ func TestCreate(t *testing.T) {
 
 	repo := NewUserRepositoryDB(db, log.New(os.Stdout, "test: ", log.LstdFlags))
 
-	// test case 1: user created successfully
 	t.Run("User created successfully", func(t *testing.T) {
 		mockUser := mockUserObj()
 		salt := "some_salt"
@@ -214,7 +222,6 @@ func TestCreate(t *testing.T) {
 		require.Equal(t, mockUser.Timezone, createdUser.Timezone)
 	})
 
-	// test case 2: user already exists
 	t.Run("User already exists", func(t *testing.T) {
 		mockUser := mockUserObj()
 		salt := "some_salt"
@@ -225,7 +232,6 @@ func TestCreate(t *testing.T) {
 		require.Error(t, err)
 	})
 
-	// test case 3: database error during user creation
 	t.Run("Database error during user creation", func(t *testing.T) {
 		mockUser := mockUserObj()
 		salt := "some_salt"
@@ -240,6 +246,15 @@ func TestCreate(t *testing.T) {
 	})
 }
 
+// TestUpdate performs unit tests with mocking  on the Update method of UserRepositoryDB.
+//
+// Test Scenarios:
+// - User updated successfully: Validates that the function correctly updates an existing user and returns the updated user object.
+// - User does not exist: Tests that the function returns an error when attempting to update a non-existing user.
+// - Email already exists: Ensures that the function returns an error when attempting to update an email to one that already exists in the database.
+//
+// Each test case uses sqlmock to simulate database interactions,
+// and the require package for assertions to ensure that the behavior is as expected.
 func TestUpdate(t *testing.T) {
 	db, mock, err := sqlmock.New()
 	require.NoError(t, err)
@@ -247,7 +262,6 @@ func TestUpdate(t *testing.T) {
 
 	repo := NewUserRepositoryDB(db, log.New(os.Stdout, "test: ", log.LstdFlags))
 
-	// test case 1: user updated successfully
 	t.Run("User updated successfully", func(t *testing.T) {
 		existingUser := mockUserObj()
 		updateUser := existingUser
@@ -266,7 +280,6 @@ func TestUpdate(t *testing.T) {
 		require.Equal(t, updateUser.Email, updatedUser.Email)
 	})
 
-	// test case 2: user does not exist
 	t.Run("User does not exist", func(t *testing.T) {
 		nonExistingUser := mockUserObj()
 
@@ -276,7 +289,6 @@ func TestUpdate(t *testing.T) {
 		require.Error(t, err)
 	})
 
-	// test case 3: email already exists
 	t.Run("Email already exists", func(t *testing.T) {
 		existingUser := mockUserObj()
 		updateUser := existingUser
@@ -290,7 +302,7 @@ func TestUpdate(t *testing.T) {
 	})
 }
 
-// TestFindAll performs unit mock tests on the FindAll method of UserRepositoryDB.
+// TestFindAll performs unit tests with mocking on the FindAll method of UserRepositoryDB.
 //
 // Test Scenarios:
 // - Two Filters applied successfully, FromID and PageSize: Verifies that the function works as expected when only FromID and PageSize are used as filters.
