@@ -4,10 +4,10 @@ import (
 	"database/sql"
 	"errors"
 	"fmt"
+	"github.com/ashtishad/ecommerce/lib"
 	"github.com/ashtishad/ecommerce/users-api/database"
 	"github.com/ashtishad/ecommerce/users-api/internal/domain"
 	"github.com/ashtishad/ecommerce/users-api/internal/service"
-	"github.com/ashtishad/ecommerce/users-api/pkg/ginconf"
 	"github.com/gin-gonic/gin"
 	"github.com/golang-migrate/migrate/v4"
 	_ "github.com/golang-migrate/migrate/v4/database/postgres"
@@ -70,10 +70,10 @@ func StartUsersAPI() {
 	setUsersApiRoutes(r, uh)
 
 	// custom logger middleware
-	r.Use(gin.LoggerWithFormatter(ginconf.Logger))
+	r.Use(gin.LoggerWithFormatter(lib.Logger))
 
 	// custom recovery middleware
-	r.Use(gin.CustomRecovery(ginconf.Recover))
+	r.Use(gin.CustomRecovery(lib.Recover))
 
 	// start server
 	go func() {
@@ -83,7 +83,7 @@ func StartUsersAPI() {
 	}()
 
 	// graceful shutdown
-	ginconf.GracefulShutdown(srv)
+	lib.GracefulShutdown(srv)
 }
 
 func setUsersApiRoutes(r *gin.Engine, uh UserHandlers) {

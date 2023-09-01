@@ -1,4 +1,4 @@
-package ginconf
+package lib
 
 import (
 	"context"
