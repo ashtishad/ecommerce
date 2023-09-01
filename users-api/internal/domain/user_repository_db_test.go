@@ -289,3 +289,148 @@ func TestUpdate(t *testing.T) {
 		require.Error(t, err)
 	})
 }
+
+// TestFindAll performs unit mock tests on the FindAll method of UserRepositoryDB.
+//
+// Test Scenarios:
+// - Two Filters applied successfully, FromID and PageSize: Verifies that the function works as expected when only FromID and PageSize are used as filters.
+// - Users filtered by FromID, PageSize and Status: Tests the function's behavior when FromID, PageSize, and Status are used as filters.
+// - All Filters Applied: Checks that the function can handle multiple filters (FromID, PageSize, Status, SignUpOption, and Timezone) simultaneously and return the expected result.
+// - Empty Result with Filters: Verifies that the function returns an error and empty results when the filters do not match any users.
+// - No users found: Tests that the function returns an error when there are no users in the database.
+// - Negative PageSize: Ensures that the function returns an error when the PageSize is negative.
+//
+// Each test case uses sqlmock to simulate database interactions,
+// and the require package for assertions to ensure that the behavior is as expected.
+func TestFindAll(t *testing.T) {
+	db, mock, err := sqlmock.New()
+	require.NoError(t, err)
+	defer db.Close()
+
+	repo := UserRepositoryDB{db: db}
+
+	t.Run("Two Filters applied successfully, FromID and PageSize", func(t *testing.T) {
+		mockUser := mockUserObj()
+		rows := mockUserRows(mockUser)
+
+		mock.ExpectQuery("SELECT (.+) FROM users WHERE").WithArgs(0, 1).WillReturnRows(rows)
+		mock.ExpectQuery("SELECT COUNT(.+) FROM users WHERE").WithArgs(0).WillReturnRows(sqlmock.NewRows([]string{"count"}).AddRow(1))
+
+		opts := FindAllUsersOptions{
+			FromID:   0,
+			PageSize: 1,
+		}
+
+		users, pageInfo, err := repo.FindAll(opts)
+
+		require.NoError(t, err)
+		require.Len(t, users, 1)
+		require.Equal(t, false, pageInfo.HasNextPage)
+		require.Equal(t, 1, pageInfo.StartCursor)
+		require.Equal(t, 1, pageInfo.EndCursor)
+		require.Equal(t, 1, pageInfo.TotalCount)
+
+		err = mock.ExpectationsWereMet()
+		require.NoError(t, err)
+
+	})
+
+	t.Run("Users filtered by FromID, PageSize and Status", func(t *testing.T) {
+		mockUser := mockUserObj()
+		rows := mockUserRows(mockUser)
+
+		mock.ExpectQuery("SELECT (.+) FROM users WHERE").WithArgs(0, "active", 1).WillReturnRows(rows)
+		mock.ExpectQuery("SELECT COUNT(.+) FROM users WHERE").WithArgs(0, "active").WillReturnRows(sqlmock.NewRows([]string{"count"}).AddRow(1))
+
+		opts := FindAllUsersOptions{
+			FromID:   0,
+			PageSize: 1,
+			Status:   "active",
+		}
+
+		users, pageInfo, err := repo.FindAll(opts)
+
+		require.NoError(t, err)
+		require.Len(t, users, 1)
+		require.Equal(t, false, pageInfo.HasNextPage)
+		require.Equal(t, 1, pageInfo.StartCursor)
+		require.Equal(t, 1, pageInfo.EndCursor)
+		require.Equal(t, 1, pageInfo.TotalCount)
+
+		err = mock.ExpectationsWereMet()
+		require.NoError(t, err)
+	})
+
+	t.Run("All Filters Applied", func(t *testing.T) {
+		mockUser := mockUserObj()
+		rows := mockUserRows(mockUser)
+
+		mock.ExpectQuery("SELECT (.+) FROM users WHERE").WithArgs(0, "active", "email", "UTC", 1).WillReturnRows(rows)
+		mock.ExpectQuery("SELECT COUNT(.+) FROM users WHERE").WithArgs(0, "active", "email", "UTC").WillReturnRows(sqlmock.NewRows([]string{"count"}).AddRow(1))
+
+		opts := FindAllUsersOptions{
+			FromID:       0,
+			PageSize:     1,
+			Status:       "active",
+			SignUpOption: "email",
+			Timezone:     "UTC",
+		}
+
+		users, pageInfo, err := repo.FindAll(opts)
+
+		require.NoError(t, err)
+		require.Len(t, users, 1)
+		require.Equal(t, false, pageInfo.HasNextPage)
+		require.Equal(t, 1, pageInfo.StartCursor)
+		require.Equal(t, 1, pageInfo.EndCursor)
+		require.Equal(t, 1, pageInfo.TotalCount)
+	})
+
+	t.Run("Empty Result with Filters", func(t *testing.T) {
+		mock.ExpectQuery("SELECT (.+) FROM users WHERE").WithArgs(0, "inactive", 1).WillReturnRows(sqlmock.NewRows([]string{}))
+
+		opts := FindAllUsersOptions{
+			FromID:   0,
+			PageSize: 1,
+			Status:   "inactive",
+		}
+
+		users, pageInfo, err := repo.FindAll(opts)
+
+		require.Error(t, err)
+		require.Nil(t, users)
+		require.Nil(t, pageInfo)
+	})
+
+	t.Run("No users found", func(t *testing.T) {
+		mock.ExpectQuery("SELECT (.+) FROM users WHERE").WithArgs(0, 1).WillReturnRows(sqlmock.NewRows([]string{}))
+
+		opts := FindAllUsersOptions{
+			FromID:   0,
+			PageSize: 1,
+		}
+
+		users, pageInfo, err := repo.FindAll(opts)
+
+		require.Error(t, err)
+		require.Nil(t, users)
+		require.Nil(t, pageInfo)
+
+		err = mock.ExpectationsWereMet()
+		require.NoError(t, err)
+	})
+
+	t.Run("Negative PageSize", func(t *testing.T) {
+		opts := FindAllUsersOptions{
+			FromID:   0,
+			PageSize: -1,
+		}
+
+		users, pageInfo, err := repo.FindAll(opts)
+
+		require.Error(t, err)
+		require.Nil(t, users)
+		require.Nil(t, pageInfo)
+	})
+
+}
