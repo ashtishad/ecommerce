@@ -10,7 +10,7 @@ import (
 type UserService interface {
 	NewUser(request domain.NewUserRequestDTO) (*domain.UserResponseDTO, error)
 	UpdateUser(request domain.UpdateUserRequestDTO) (*domain.UserResponseDTO, error)
-	GetAllUsers(request domain.FindAllUsersOptionsDTO) (*[]domain.UserResponseDTO, *domain.NextPageInfo, error)
+	GetAllUsers(request domain.FindAllUsersOptionsDTO) ([]domain.UserResponseDTO, *domain.NextPageInfo, error)
 }
 
 type DefaultUserService struct {
@@ -80,7 +80,7 @@ func (service *DefaultUserService) UpdateUser(request domain.UpdateUserRequestDT
 	return userResponseDTO, nil
 }
 
-func (service *DefaultUserService) GetAllUsers(request domain.FindAllUsersOptionsDTO) (*[]domain.UserResponseDTO, *domain.NextPageInfo, error) {
+func (service *DefaultUserService) GetAllUsers(request domain.FindAllUsersOptionsDTO) ([]domain.UserResponseDTO, *domain.NextPageInfo, error) {
 	opts, err := validateFindAllUsersOpts(request)
 	if err != nil {
 		return nil, nil, err
@@ -93,10 +93,10 @@ func (service *DefaultUserService) GetAllUsers(request domain.FindAllUsersOption
 
 	var userDTOs []domain.UserResponseDTO
 
-	for _, u := range *users {
+	for _, u := range users {
 		userResponseDTO := u.ToUserResponseDTO()
 		userDTOs = append(userDTOs, *userResponseDTO)
 	}
 
-	return &userDTOs, nextPageInfo, nil
+	return userDTOs, nextPageInfo, nil
 }

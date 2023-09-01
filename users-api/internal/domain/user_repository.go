@@ -5,7 +5,7 @@ package domain
 type UserRepository interface {
 	Create(user User, salt string) (*User, error) // create(unique:email)
 	Update(user User) (*User, error)              // update(unique:uuid)
-	FindAll(opts FindAllUsersOptions) (*[]User, *NextPageInfo, error)
+	FindAll(opts FindAllUsersOptions) ([]User, *NextPageInfo, error)
 	findUserByID(userID int) (*User, error)
 	findUserByUUID(userUUID string) (*User, error) // helper needed in update
 	isUserExist(email string) (bool, error)

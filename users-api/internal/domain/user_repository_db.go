@@ -135,11 +135,11 @@ func (d *UserRepositoryDB) isUserExist(email string) (bool, error) {
 }
 
 // FindAll retrieves all users from the database with optional filters
-func (d *UserRepositoryDB) FindAll(opts FindAllUsersOptions) (*[]User, *NextPageInfo, error) {
+func (d *UserRepositoryDB) FindAll(opts FindAllUsersOptions) ([]User, *NextPageInfo, error) {
 	var users []User
 	var nextPageInfo NextPageInfo
 
-	baseQuery := "SELECT * FROM users WHERE user_id > $1 "
+	baseQuery := "SELECT user_id, user_uuid, email, password_hash, full_name, phone, sign_up_option, status, timezone, created_at, updated_at FROM users WHERE user_id > $1 "
 	countQuery := "SELECT COUNT(*) FROM users WHERE user_id > $1 "
 
 	args := []interface{}{opts.FromID}
@@ -167,6 +167,7 @@ func (d *UserRepositoryDB) FindAll(opts FindAllUsersOptions) (*[]User, *NextPage
 	}
 
 	baseQuery += fmt.Sprintf("LIMIT $%d", argCount)
+
 	args = append(args, opts.PageSize)
 
 	rows, err := d.db.Query(baseQuery, args...)
@@ -202,16 +203,31 @@ func (d *UserRepositoryDB) FindAll(opts FindAllUsersOptions) (*[]User, *NextPage
 		users = append(users, user)
 	}
 
+	userCount := len(users)
+
+	if len(users) == 0 {
+		return nil, nil, errors.New("no users found")
+	}
+
+	if len(users) < opts.PageSize {
+		return users, &NextPageInfo{
+			HasNextPage: false,
+			StartCursor: users[0].UserID,
+			EndCursor:   users[userCount-1].UserID,
+			TotalCount:  userCount,
+		}, nil
+	}
+
 	var totalCount int
-	if err := d.db.QueryRow(countQuery, args[:argCount-1]...).Scan(&totalCount); err != nil {
+	if err = d.db.QueryRow(countQuery, args[:argCount-1]...).Scan(&totalCount); err != nil {
 		d.l.Printf("error scanning rows in find all users %s", err.Error())
 		return nil, nil, errors.New("error calculating total rows in find all users")
 	}
 
-	nextPageInfo.HasNextPage = totalCount > opts.FromID+opts.PageSize
-	nextPageInfo.StartCursor = opts.FromID
-	nextPageInfo.EndCursor = opts.FromID + opts.PageSize - 1
+	nextPageInfo.HasNextPage = totalCount > opts.PageSize
+	nextPageInfo.StartCursor = users[0].UserID
+	nextPageInfo.EndCursor = users[userCount-1].UserID
 	nextPageInfo.TotalCount = totalCount
 
-	return &users, &nextPageInfo, nil
+	return users, &nextPageInfo, nil
 }
