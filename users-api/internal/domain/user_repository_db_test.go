@@ -180,6 +180,15 @@ func TestFindUserByUUID(t *testing.T) {
 	require.Nil(t, user)
 }
 
+// TestCreate performs unit tests with mocking on the Create method of UserRepositoryDB.
+//
+// Test Scenarios:
+// - User created successfully: Validates that the function correctly creates a new user, commits the transaction, and returns the created user object.
+// - User already exists: Tests that the function returns an error when attempting to create a user with an email that already exists.
+// - Database error during user creation: Ensures that the function returns an error when a database error occurs, and rolls back the transaction.
+//
+// Each test case uses sqlmock to simulate database interactions,
+// and the require package for assertions to ensure that the behavior is as expected.
 func TestCreate(t *testing.T) {
 	db, mock, err := sqlmock.New()
 	require.NoError(t, err)
@@ -187,7 +196,6 @@ func TestCreate(t *testing.T) {
 
 	repo := NewUserRepositoryDB(db, log.New(os.Stdout, "test: ", log.LstdFlags))
 
-	// test case 1: user created successfully
 	t.Run("User created successfully", func(t *testing.T) {
 		mockUser := mockUserObj()
 		salt := "some_salt"
@@ -214,7 +222,6 @@ func TestCreate(t *testing.T) {
 		require.Equal(t, mockUser.Timezone, createdUser.Timezone)
 	})
 
-	// test case 2: user already exists
 	t.Run("User already exists", func(t *testing.T) {
 		mockUser := mockUserObj()
 		salt := "some_salt"
@@ -225,7 +232,6 @@ func TestCreate(t *testing.T) {
 		require.Error(t, err)
 	})
 
-	// test case 3: database error during user creation
 	t.Run("Database error during user creation", func(t *testing.T) {
 		mockUser := mockUserObj()
 		salt := "some_salt"
@@ -240,6 +246,15 @@ func TestCreate(t *testing.T) {
 	})
 }
 
+// TestUpdate performs unit tests with mocking  on the Update method of UserRepositoryDB.
+//
+// Test Scenarios:
+// - User updated successfully: Validates that the function correctly updates an existing user and returns the updated user object.
+// - User does not exist: Tests that the function returns an error when attempting to update a non-existing user.
+// - Email already exists: Ensures that the function returns an error when attempting to update an email to one that already exists in the database.
+//
+// Each test case uses sqlmock to simulate database interactions,
+// and the require package for assertions to ensure that the behavior is as expected.
 func TestUpdate(t *testing.T) {
 	db, mock, err := sqlmock.New()
 	require.NoError(t, err)
@@ -247,7 +262,6 @@ func TestUpdate(t *testing.T) {
 
 	repo := NewUserRepositoryDB(db, log.New(os.Stdout, "test: ", log.LstdFlags))
 
-	// test case 1: user updated successfully
 	t.Run("User updated successfully", func(t *testing.T) {
 		existingUser := mockUserObj()
 		updateUser := existingUser
@@ -266,7 +280,6 @@ func TestUpdate(t *testing.T) {
 		require.Equal(t, updateUser.Email, updatedUser.Email)
 	})
 
-	// test case 2: user does not exist
 	t.Run("User does not exist", func(t *testing.T) {
 		nonExistingUser := mockUserObj()
 
@@ -276,7 +289,6 @@ func TestUpdate(t *testing.T) {
 		require.Error(t, err)
 	})
 
-	// test case 3: email already exists
 	t.Run("Email already exists", func(t *testing.T) {
 		existingUser := mockUserObj()
 		updateUser := existingUser
@@ -288,4 +300,149 @@ func TestUpdate(t *testing.T) {
 		_, err := repo.Update(updateUser)
 		require.Error(t, err)
 	})
+}
+
+// TestFindAll performs unit tests with mocking on the FindAll method of UserRepositoryDB.
+//
+// Test Scenarios:
+// - Two Filters applied successfully, FromID and PageSize: Verifies that the function works as expected when only FromID and PageSize are used as filters.
+// - Users filtered by FromID, PageSize and Status: Tests the function's behavior when FromID, PageSize, and Status are used as filters.
+// - All Filters Applied: Checks that the function can handle multiple filters (FromID, PageSize, Status, SignUpOption, and Timezone) simultaneously and return the expected result.
+// - Empty Result with Filters: Verifies that the function returns an error and empty results when the filters do not match any users.
+// - No users found: Tests that the function returns an error when there are no users in the database.
+// - Negative PageSize: Ensures that the function returns an error when the PageSize is negative.
+//
+// Each test case uses sqlmock to simulate database interactions,
+// and the require package for assertions to ensure that the behavior is as expected.
+func TestFindAll(t *testing.T) {
+	db, mock, err := sqlmock.New()
+	require.NoError(t, err)
+	defer db.Close()
+
+	repo := UserRepositoryDB{db: db}
+
+	t.Run("Two Filters applied successfully, FromID and PageSize", func(t *testing.T) {
+		mockUser := mockUserObj()
+		rows := mockUserRows(mockUser)
+
+		mock.ExpectQuery("SELECT (.+) FROM users WHERE").WithArgs(0, 1).WillReturnRows(rows)
+		mock.ExpectQuery("SELECT COUNT(.+) FROM users WHERE").WithArgs(0).WillReturnRows(sqlmock.NewRows([]string{"count"}).AddRow(1))
+
+		opts := FindAllUsersOptions{
+			FromID:   0,
+			PageSize: 1,
+		}
+
+		users, pageInfo, err := repo.FindAll(opts)
+
+		require.NoError(t, err)
+		require.Len(t, users, 1)
+		require.Equal(t, false, pageInfo.HasNextPage)
+		require.Equal(t, 1, pageInfo.StartCursor)
+		require.Equal(t, 1, pageInfo.EndCursor)
+		require.Equal(t, 1, pageInfo.TotalCount)
+
+		err = mock.ExpectationsWereMet()
+		require.NoError(t, err)
+
+	})
+
+	t.Run("Users filtered by FromID, PageSize and Status", func(t *testing.T) {
+		mockUser := mockUserObj()
+		rows := mockUserRows(mockUser)
+
+		mock.ExpectQuery("SELECT (.+) FROM users WHERE").WithArgs(0, "active", 1).WillReturnRows(rows)
+		mock.ExpectQuery("SELECT COUNT(.+) FROM users WHERE").WithArgs(0, "active").WillReturnRows(sqlmock.NewRows([]string{"count"}).AddRow(1))
+
+		opts := FindAllUsersOptions{
+			FromID:   0,
+			PageSize: 1,
+			Status:   "active",
+		}
+
+		users, pageInfo, err := repo.FindAll(opts)
+
+		require.NoError(t, err)
+		require.Len(t, users, 1)
+		require.Equal(t, false, pageInfo.HasNextPage)
+		require.Equal(t, 1, pageInfo.StartCursor)
+		require.Equal(t, 1, pageInfo.EndCursor)
+		require.Equal(t, 1, pageInfo.TotalCount)
+
+		err = mock.ExpectationsWereMet()
+		require.NoError(t, err)
+	})
+
+	t.Run("All Filters Applied", func(t *testing.T) {
+		mockUser := mockUserObj()
+		rows := mockUserRows(mockUser)
+
+		mock.ExpectQuery("SELECT (.+) FROM users WHERE").WithArgs(0, "active", "email", "UTC", 1).WillReturnRows(rows)
+		mock.ExpectQuery("SELECT COUNT(.+) FROM users WHERE").WithArgs(0, "active", "email", "UTC").WillReturnRows(sqlmock.NewRows([]string{"count"}).AddRow(1))
+
+		opts := FindAllUsersOptions{
+			FromID:       0,
+			PageSize:     1,
+			Status:       "active",
+			SignUpOption: "email",
+			Timezone:     "UTC",
+		}
+
+		users, pageInfo, err := repo.FindAll(opts)
+
+		require.NoError(t, err)
+		require.Len(t, users, 1)
+		require.Equal(t, false, pageInfo.HasNextPage)
+		require.Equal(t, 1, pageInfo.StartCursor)
+		require.Equal(t, 1, pageInfo.EndCursor)
+		require.Equal(t, 1, pageInfo.TotalCount)
+	})
+
+	t.Run("Empty Result with Filters", func(t *testing.T) {
+		mock.ExpectQuery("SELECT (.+) FROM users WHERE").WithArgs(0, "inactive", 1).WillReturnRows(sqlmock.NewRows([]string{}))
+
+		opts := FindAllUsersOptions{
+			FromID:   0,
+			PageSize: 1,
+			Status:   "inactive",
+		}
+
+		users, pageInfo, err := repo.FindAll(opts)
+
+		require.Error(t, err)
+		require.Nil(t, users)
+		require.Nil(t, pageInfo)
+	})
+
+	t.Run("No users found", func(t *testing.T) {
+		mock.ExpectQuery("SELECT (.+) FROM users WHERE").WithArgs(0, 1).WillReturnRows(sqlmock.NewRows([]string{}))
+
+		opts := FindAllUsersOptions{
+			FromID:   0,
+			PageSize: 1,
+		}
+
+		users, pageInfo, err := repo.FindAll(opts)
+
+		require.Error(t, err)
+		require.Nil(t, users)
+		require.Nil(t, pageInfo)
+
+		err = mock.ExpectationsWereMet()
+		require.NoError(t, err)
+	})
+
+	t.Run("Negative PageSize", func(t *testing.T) {
+		opts := FindAllUsersOptions{
+			FromID:   0,
+			PageSize: -1,
+		}
+
+		users, pageInfo, err := repo.FindAll(opts)
+
+		require.Error(t, err)
+		require.Nil(t, users)
+		require.Nil(t, pageInfo)
+	})
+
 }
