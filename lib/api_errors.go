@@ -33,15 +33,6 @@ func (e apiError) Wrap(err error) APIError {
 	return e
 }
 
-// NewAPIError creates a new APIError with a given message, status, and causes.
-func NewAPIError(message string, status int, causes []interface{}) APIError {
-	return apiError{
-		Message: message,
-		Status:  status,
-		Causes:  causes,
-	}
-}
-
 // NewBadRequestError creates a new APIError for bad requests.
 //
 // Example usage:
