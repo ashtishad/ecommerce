@@ -76,7 +76,7 @@ func (d *UserRepositoryDB) Update(user User) (*User, error) {
 			return nil, err
 		}
 		if exists {
-			return nil, fmt.Errorf("user already exist with email : %s", existingUser.Email)
+			return nil, fmt.Errorf("user already exist with email : %s", user.Email)
 		}
 	}
 
@@ -132,4 +132,100 @@ func (d *UserRepositoryDB) isUserExist(email string) (bool, error) {
 		return false, err
 	}
 	return exists, nil
+}
+
+// FindAll retrieves all users from the database with optional filters
+func (d *UserRepositoryDB) FindAll(opts FindAllUsersOptions) ([]User, *NextPageInfo, error) {
+	var users []User
+	var nextPageInfo NextPageInfo
+
+	baseQuery := "SELECT user_id, user_uuid, email, password_hash, full_name, phone, sign_up_option, status, timezone, created_at, updated_at FROM users WHERE user_id > $1 "
+	countQuery := "SELECT COUNT(*) FROM users WHERE user_id > $1 "
+
+	args := []interface{}{opts.FromID}
+	argCount := 2
+
+	if opts.Status != "" {
+		baseQuery += fmt.Sprintf("AND status = $%d ", argCount)
+		countQuery += fmt.Sprintf("AND status = $%d ", argCount)
+		args = append(args, opts.Status)
+		argCount++
+	}
+
+	if opts.SignUpOption != "" {
+		baseQuery += fmt.Sprintf("AND sign_up_option = $%d ", argCount)
+		countQuery += fmt.Sprintf("AND sign_up_option = $%d ", argCount)
+		args = append(args, opts.SignUpOption)
+		argCount++
+	}
+
+	if opts.Timezone != "" {
+		baseQuery += fmt.Sprintf("AND timezone = $%d ", argCount)
+		countQuery += fmt.Sprintf("AND timezone = $%d ", argCount)
+		args = append(args, opts.Timezone)
+		argCount++
+	}
+
+	baseQuery += fmt.Sprintf("LIMIT $%d", argCount)
+
+	args = append(args, opts.PageSize)
+
+	rows, err := d.db.Query(baseQuery, args...)
+	if err != nil {
+		return nil, nil, err
+	}
+	defer func(rows *sql.Rows) {
+		rowsClsErr := rows.Close()
+		if rowsClsErr != nil {
+			d.l.Printf("error closing rows in find all users: %s", rowsClsErr.Error())
+			return
+		}
+	}(rows)
+
+	for rows.Next() {
+		var user User
+		if err = rows.Scan(
+			&user.UserID,
+			&user.UserUUID,
+			&user.Email,
+			&user.PasswordHash,
+			&user.FullName,
+			&user.Phone,
+			&user.SignUpOption,
+			&user.Status,
+			&user.Timezone,
+			&user.CreatedAt,
+			&user.UpdatedAt,
+		); err != nil {
+			return nil, nil, errors.New("error scanning rows in find all users")
+		}
+		users = append(users, user)
+	}
+
+	userCount := len(users)
+
+	if len(users) == 0 {
+		return nil, nil, errors.New("no users found")
+	}
+
+	if len(users) < opts.PageSize {
+		return users, &NextPageInfo{
+			HasNextPage: false,
+			StartCursor: users[0].UserID,
+			EndCursor:   users[userCount-1].UserID,
+			TotalCount:  userCount,
+		}, nil
+	}
+
+	var totalCount int
+	if err = d.db.QueryRow(countQuery, args[:argCount-1]...).Scan(&totalCount); err != nil {
+		return nil, nil, errors.New("error calculating total rows in find all users")
+	}
+
+	nextPageInfo.HasNextPage = totalCount > opts.PageSize
+	nextPageInfo.StartCursor = users[0].UserID
+	nextPageInfo.EndCursor = users[userCount-1].UserID
+	nextPageInfo.TotalCount = totalCount
+
+	return users, &nextPageInfo, nil
 }

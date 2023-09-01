@@ -36,3 +36,27 @@ type UpdateUserRequestDTO struct {
 	Phone    string `json:"phone"`
 	Timezone string `json:"timezone"`
 }
+
+// FindAllUsersOptionsDTO is filters for FindAll Users
+type FindAllUsersOptionsDTO struct {
+	FromIDStr    string // query param
+	PageSizeStr  string // query param
+	Status       string
+	SignUpOption string
+	Timezone     string
+}
+
+// ToUserResponseDTO converts a User to a UserResponseDTO
+func (u *User) ToUserResponseDTO() *UserResponseDTO {
+	return &UserResponseDTO{
+		UserUUID:     u.UserUUID,
+		Email:        u.Email,
+		FullName:     u.FullName,
+		Phone:        u.Phone,
+		SignUpOption: u.SignUpOption,
+		Status:       u.Status,
+		Timezone:     u.Timezone,
+		CreatedAt:    u.CreatedAt,
+		UpdatedAt:    u.UpdatedAt,
+	}
+}

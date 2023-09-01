@@ -75,6 +75,24 @@ curl --location --request PUT 'localhost:8000/users/{user_id}' \
     "phone": "1234567890"
 	
 }
-'
+
+```
+
+##### Get All Users (Paginated, Optional query params "status", "fromID", "pageSize", "timezone" and "signUpOption"
+
+1. Populate users from users-api/cmd/app.go
+   uncomment this line generate.GenerateUsers(conn, 1000)
+   it will generate 1000 users when app starts(so, consider comment out it again after first run)
+2. Used cursor based pagination strategy with UserID(e.g: 0,1,5000) as cursor.
+3. Timezone region example "UTC", "Asia/Dhaka"
+
+Request examples with or without Params
+
+```
+curl --location 'localhost:8000/users'
+
+curl --location 'localhost:8000/users?signUpOption=google&status=active&pageSize=20'
+
+curl --location 'localhost:8000/users?signUpOption=google&status=active&pageSize=20&timezone=Asia%2FHarbin'
 
 ```

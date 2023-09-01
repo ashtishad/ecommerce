@@ -87,10 +87,10 @@ func StartUsersAPI() {
 }
 
 func setUsersApiRoutes(r *gin.Engine, uh UserHandlers) {
-	// Group routes related to users
 	userRoutes := r.Group("/users")
 	{
 		userRoutes.POST("", uh.createUserHandler)
 		userRoutes.PUT("/:user_id", uh.updateUserHandler)
+		userRoutes.GET("", uh.GetUsersHandler)
 	}
 }

@@ -62,3 +62,27 @@ func (us *UserHandlers) updateUserHandler(c *gin.Context) {
 
 	c.JSON(http.StatusOK, userResponse)
 }
+
+// GetUsersHandler handles the GET request to fetch all users
+func (us *UserHandlers) GetUsersHandler(c *gin.Context) {
+	var opts domain.FindAllUsersOptionsDTO
+	opts.FromIDStr = c.Query("fromID")
+	opts.PageSizeStr = c.Query("pageSize")
+	opts.Status = c.Query("status")
+	opts.SignUpOption = c.Query("signUpOption")
+	opts.Timezone = c.Query("timezone")
+
+	users, pageInfo, err := us.service.GetAllUsers(opts)
+	if err != nil {
+		us.l.Println(err.Error())
+		c.JSON(http.StatusInternalServerError, gin.H{
+			"error": "unable to retrieve users",
+		})
+		return
+	}
+
+	c.JSON(http.StatusOK, gin.H{
+		"users":     users,
+		"page_info": pageInfo,
+	})
+}

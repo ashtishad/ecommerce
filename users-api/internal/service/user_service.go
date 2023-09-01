@@ -10,6 +10,7 @@ import (
 type UserService interface {
 	NewUser(request domain.NewUserRequestDTO) (*domain.UserResponseDTO, error)
 	UpdateUser(request domain.UpdateUserRequestDTO) (*domain.UserResponseDTO, error)
+	GetAllUsers(request domain.FindAllUsersOptionsDTO) ([]domain.UserResponseDTO, *domain.NextPageInfo, error)
 }
 
 type DefaultUserService struct {
@@ -50,17 +51,7 @@ func (service *DefaultUserService) NewUser(request domain.NewUserRequestDTO) (*d
 		return nil, err
 	}
 
-	userResponseDTO := &domain.UserResponseDTO{
-		UserUUID:     createdUser.UserUUID,
-		Email:        createdUser.Email,
-		FullName:     createdUser.FullName,
-		Phone:        createdUser.Phone,
-		SignUpOption: createdUser.SignUpOption,
-		Status:       createdUser.Status,
-		Timezone:     createdUser.Timezone,
-		CreatedAt:    createdUser.CreatedAt,
-		UpdatedAt:    createdUser.UpdatedAt,
-	}
+	userResponseDTO := createdUser.ToUserResponseDTO()
 
 	return userResponseDTO, nil
 }
@@ -84,17 +75,28 @@ func (service *DefaultUserService) UpdateUser(request domain.UpdateUserRequestDT
 		return nil, err
 	}
 
-	userResponseDTO := &domain.UserResponseDTO{
-		UserUUID:     updatedUser.UserUUID,
-		Email:        updatedUser.Email,
-		FullName:     updatedUser.FullName,
-		Phone:        updatedUser.Phone,
-		SignUpOption: updatedUser.SignUpOption,
-		Status:       updatedUser.Status,
-		Timezone:     updatedUser.Timezone,
-		CreatedAt:    updatedUser.CreatedAt,
-		UpdatedAt:    updatedUser.UpdatedAt,
-	}
+	userResponseDTO := updatedUser.ToUserResponseDTO()
 
 	return userResponseDTO, nil
+}
+
+func (service *DefaultUserService) GetAllUsers(request domain.FindAllUsersOptionsDTO) ([]domain.UserResponseDTO, *domain.NextPageInfo, error) {
+	opts, err := validateFindAllUsersOpts(request)
+	if err != nil {
+		return nil, nil, err
+	}
+
+	users, nextPageInfo, err := service.repo.FindAll(*opts)
+	if err != nil {
+		return nil, nil, err
+	}
+
+	var userDTOs []domain.UserResponseDTO
+
+	for _, u := range users {
+		userResponseDTO := u.ToUserResponseDTO()
+		userDTOs = append(userDTOs, *userResponseDTO)
+	}
+
+	return userDTOs, nextPageInfo, nil
 }
