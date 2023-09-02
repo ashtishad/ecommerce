@@ -4,13 +4,13 @@ import (
 	"github.com/ashtishad/ecommerce/users-api/internal/domain"
 	"github.com/ashtishad/ecommerce/users-api/internal/service"
 	"github.com/gin-gonic/gin"
-	"log"
+	"log/slog"
 	"net/http"
 )
 
 type UserHandlers struct {
 	service service.UserService
-	l       *log.Logger
+	l       *slog.Logger
 }
 
 // createUserHandler handles the creation of a user if user not exists.
@@ -18,18 +18,16 @@ type UserHandlers struct {
 // then calls the service method to create a new user,
 // finally write the response data and correct HTTP status code.
 func (us *UserHandlers) createUserHandler(c *gin.Context) {
-	us.l.Println("Handling POST request on /user")
-
 	var newUserRequest domain.NewUserRequestDTO
 	if err := c.ShouldBindJSON(&newUserRequest); err != nil {
-		us.l.Println(err.Error())
+		us.l.Error("failed to bind create user req dto", "err", err.Error())
 		c.JSON(http.StatusBadRequest, gin.H{"error": "bad request"})
 		return
 	}
 
 	userResponse, err := us.service.NewUser(newUserRequest)
 	if err != nil {
-		us.l.Println(err.Error())
+		us.l.Error("failed to create new user", "err", err.Error())
 		c.JSON(err.StatusCode(), err)
 		return
 	}
@@ -42,20 +40,18 @@ func (us *UserHandlers) createUserHandler(c *gin.Context) {
 // then calls the service method to update the user,
 // finally write the response data and correct HTTP status code.
 func (us *UserHandlers) updateUserHandler(c *gin.Context) {
-	us.l.Println("Handling PUT request on /user")
-
 	UserUUID := c.Param("user_id")
 
 	var updateUserRequest domain.UpdateUserRequestDTO
 	if err := c.ShouldBindJSON(&updateUserRequest); err != nil {
-		us.l.Println(err.Error())
+		us.l.Error("failed to bind update user req dto", "err", err.Error())
 		c.JSON(http.StatusBadRequest, gin.H{"error": "bad request"})
 		return
 	}
 	updateUserRequest.UserUUID = UserUUID
 	userResponse, err := us.service.UpdateUser(updateUserRequest)
 	if err != nil {
-		us.l.Println(err.Error())
+		us.l.Error("failed to update user", "err", err.Error())
 		c.JSON(err.StatusCode(), err)
 		return
 	}
@@ -74,7 +70,7 @@ func (us *UserHandlers) GetUsersHandler(c *gin.Context) {
 
 	users, pageInfo, err := us.service.GetAllUsers(opts)
 	if err != nil {
-		us.l.Println(err.Error())
+		us.l.Error("failed to get users", "err", err.Error())
 		c.JSON(err.StatusCode(), err)
 		return
 	}

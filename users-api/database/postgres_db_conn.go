@@ -4,7 +4,7 @@ import (
 	"database/sql"
 	"fmt"
 	_ "github.com/lib/pq"
-	"log"
+	"log/slog"
 	"net/url"
 	"os"
 	"strconv"
@@ -16,8 +16,12 @@ import (
 // The resulting DSN string is in the format:
 // "postgres://user:password@host:port/dbname?sslmode=disable&timezone=UTC"
 // Returns the constructed DSN string.
-func GetDSNString() string {
-	portInt, _ := strconv.Atoi(os.Getenv("DB_PORT"))
+func GetDSNString(l *slog.Logger) string {
+	portInt, err := strconv.Atoi(os.Getenv("DB_PORT"))
+	if err != nil {
+		l.Error("error converting port string to int", "err", err.Error())
+		os.Exit(1)
+	}
 	dsn := url.URL{
 		Scheme: "postgres",
 		User:   url.UserPassword(os.Getenv("DB_USER"), os.Getenv("DB_PASSWD")),
@@ -33,17 +37,19 @@ func GetDSNString() string {
 }
 
 // GetDbClient creates a new database connection and returns it
-func GetDbClient() *sql.DB {
-	dsn := GetDSNString()
+func GetDbClient(l *slog.Logger) *sql.DB {
+	dsn := GetDSNString(l)
 	db, err := sql.Open("postgres", dsn)
 	if err != nil {
-		log.Fatalf("error connecting to the database: %v", err)
+		l.Error("error connecting to the database", "err", err.Error())
+		os.Exit(1)
 	}
 
 	if err = db.Ping(); err != nil {
-		log.Fatalf("error pinging the database: %v", err)
+		l.Error("error pinging the database", "err", err.Error())
+		os.Exit(1)
 	}
-	log.Printf("successfully connected to database %s", dsn)
+	l.Info("successfully connected to database", "dsn", dsn)
 
 	db.SetConnMaxLifetime(time.Minute * 3)
 	db.SetMaxOpenConns(10)

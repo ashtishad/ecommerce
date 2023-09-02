@@ -1,13 +1,14 @@
 package app
 
 import (
-	"log"
+	"fmt"
+	"log/slog"
 	"os"
 )
 
 // sanityCheck checks that all required environment variables are set.
 // if any of the required variables is not defined, it prints a log message.
-func sanityCheck(l *log.Logger) {
+func sanityCheck(l *slog.Logger) {
 	envProps := []string{
 		"SERVER_ADDRESS",
 		"SERVER_PORT",
@@ -19,7 +20,7 @@ func sanityCheck(l *log.Logger) {
 	}
 	for _, k := range envProps {
 		if os.Getenv(k) == "" {
-			l.Printf("environment variable %s not defined. Terminating application...", k)
+			l.Warn(fmt.Sprintf("environment variable %s not defined", k))
 		}
 	}
 }

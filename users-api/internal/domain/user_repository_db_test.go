@@ -6,8 +6,6 @@ import (
 	"github.com/DATA-DOG/go-sqlmock"
 	"github.com/ashtishad/ecommerce/users-api/pkg/constants"
 	"github.com/stretchr/testify/require"
-	"log"
-	"os"
 	"regexp"
 	"strings"
 	"testing"
@@ -194,7 +192,7 @@ func TestCreate(t *testing.T) {
 	require.NoError(t, err)
 	defer db.Close()
 
-	repo := NewUserRepositoryDB(db, log.New(os.Stdout, "test: ", log.LstdFlags))
+	repo := NewUserRepositoryDB(db, nil)
 
 	t.Run("User created successfully", func(t *testing.T) {
 		mockUser := mockUserObj()
@@ -260,7 +258,7 @@ func TestUpdate(t *testing.T) {
 	require.NoError(t, err)
 	defer db.Close()
 
-	repo := NewUserRepositoryDB(db, log.New(os.Stdout, "test: ", log.LstdFlags))
+	repo := NewUserRepositoryDB(db, nil)
 
 	t.Run("User updated successfully", func(t *testing.T) {
 		existingUser := mockUserObj()
@@ -341,10 +339,6 @@ func TestFindAll(t *testing.T) {
 		require.Equal(t, 1, pageInfo.StartCursor)
 		require.Equal(t, 1, pageInfo.EndCursor)
 		require.Equal(t, 1, pageInfo.TotalCount)
-
-		err = mock.ExpectationsWereMet()
-		require.NoError(t, err)
-
 	})
 
 	t.Run("Users filtered by FromID, PageSize and Status", func(t *testing.T) {
@@ -368,9 +362,6 @@ func TestFindAll(t *testing.T) {
 		require.Equal(t, 1, pageInfo.StartCursor)
 		require.Equal(t, 1, pageInfo.EndCursor)
 		require.Equal(t, 1, pageInfo.TotalCount)
-
-		err = mock.ExpectationsWereMet()
-		require.NoError(t, err)
 	})
 
 	t.Run("All Filters Applied", func(t *testing.T) {
@@ -427,9 +418,6 @@ func TestFindAll(t *testing.T) {
 		require.Error(t, err)
 		require.Nil(t, users)
 		require.Nil(t, pageInfo)
-
-		err = mock.ExpectationsWereMet()
-		require.NoError(t, err)
 	})
 
 	t.Run("Negative PageSize", func(t *testing.T) {

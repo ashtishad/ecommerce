@@ -6,15 +6,15 @@ import (
 	"errors"
 	"fmt"
 	"github.com/ashtishad/ecommerce/lib"
-	"log"
+	"log/slog"
 )
 
 type UserRepositoryDB struct {
 	db *sql.DB
-	l  *log.Logger
+	l  *slog.Logger
 }
 
-func NewUserRepositoryDB(dbClient *sql.DB, l *log.Logger) *UserRepositoryDB {
+func NewUserRepositoryDB(dbClient *sql.DB, l *slog.Logger) *UserRepositoryDB {
 	return &UserRepositoryDB{dbClient, l}
 }
 
@@ -36,7 +36,7 @@ func (d *UserRepositoryDB) Create(user User, salt string) (*User, lib.APIError) 
 		if err != nil {
 			rollBackErr := tx.Rollback()
 			if rollBackErr != nil {
-				d.l.Printf("failed to rollback in create user: %s", rollBackErr.Error())
+				d.l.Error("failed to rollback in create user", "err", rollBackErr.Error())
 				return
 			}
 		}
@@ -177,7 +177,7 @@ func (d *UserRepositoryDB) FindAll(opts FindAllUsersOptions) ([]User, *NextPageI
 	defer func(rows *sql.Rows) {
 		rowsClsErr := rows.Close()
 		if rowsClsErr != nil {
-			d.l.Printf("error closing rows in find all users: %s", rowsClsErr.Error())
+			d.l.Error("error closing rows in find all users", "err", rowsClsErr.Error())
 			return
 		}
 	}(rows)
@@ -204,11 +204,11 @@ func (d *UserRepositoryDB) FindAll(opts FindAllUsersOptions) ([]User, *NextPageI
 
 	userCount := len(users)
 
-	if len(users) == 0 {
+	if userCount == 0 {
 		return nil, nil, lib.NewNotFoundError("no users found")
 	}
 
-	if len(users) < opts.PageSize {
+	if userCount < opts.PageSize {
 		return users, &NextPageInfo{
 			HasNextPage: false,
 			StartCursor: users[0].UserID,
