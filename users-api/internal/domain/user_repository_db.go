@@ -19,12 +19,8 @@ func NewUserRepositoryDB(dbClient *sql.DB, l *slog.Logger) *UserRepositoryDB {
 }
 
 func (d *UserRepositoryDB) Create(user User, salt string) (*User, lib.APIError) {
-	exists, apiErr := d.isUserExist(user.Email)
-	if apiErr != nil {
+	if apiErr := d.checkUserExistWithEmail(user.Email); apiErr != nil {
 		return nil, apiErr
-	}
-	if exists {
-		return nil, lib.NewBadRequestError(fmt.Sprintf("user exists with this email: %s", user.Email))
 	}
 
 	tx, err := d.db.Begin()
@@ -71,12 +67,9 @@ func (d *UserRepositoryDB) Update(user User) (*User, lib.APIError) {
 	// if a user wants to update the email, check user already exists with
 	// the updated email or not
 	if existingUser.Email != user.Email {
-		exists, apiErr := d.isUserExist(user.Email)
+		apiErr := d.checkUserExistWithEmail(user.Email)
 		if apiErr != nil {
 			return nil, apiErr
-		}
-		if exists {
-			return nil, lib.NewBadRequestError(fmt.Sprintf("user exists with this updated email: %s", user.Email))
 		}
 	}
 
@@ -122,16 +115,19 @@ func (d *UserRepositoryDB) findUserByUUID(userUUID string) (*User, lib.APIError)
 	return &user, nil
 }
 
-// isUserExist just for quick checking user exists or not,
-// returns true if exists, false otherwise
-// only returns database error, skips sql.ErrNoRows
-func (d *UserRepositoryDB) isUserExist(email string) (bool, lib.APIError) {
+// checkUserExistWithEmail checks if user exist with this email or not,
+// returns error if exists is true or internal server error happens,
+// if exists is false then doesn't return any error.
+func (d *UserRepositoryDB) checkUserExistWithEmail(email string) lib.APIError {
 	var exists bool
-	err := d.db.QueryRow(sqlIsUserExists, email).Scan(&exists)
+	err := d.db.QueryRow(sqlCheckUserExistsWithEmail, email).Scan(&exists)
 	if err != nil && !errors.Is(err, sql.ErrNoRows) {
-		return false, lib.NewInternalServerError("unexpected error on checking user exists", err)
+		return lib.NewInternalServerError("unexpected error on checking user exists", err)
 	}
-	return exists, nil
+	if exists == true {
+		return lib.NewBadRequestError("user already exists with this email")
+	}
+	return nil
 }
 
 // FindAll retrieves all users from the database with optional filters

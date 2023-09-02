@@ -10,7 +10,7 @@ type UserRepository interface {
 	FindAll(opts FindAllUsersOptions) ([]User, *NextPageInfo, lib.APIError)
 	findUserByID(userID int) (*User, lib.APIError)
 	findUserByUUID(userUUID string) (*User, lib.APIError) // helper needed in update
-	isUserExist(email string) (bool, lib.APIError)
+	checkUserExistWithEmail(email string) lib.APIError
 }
 
 // FindAllUsersOptions is filters for FindAll Users

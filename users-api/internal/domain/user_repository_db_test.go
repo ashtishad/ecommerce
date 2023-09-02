@@ -47,27 +47,47 @@ func expectExec(mock sqlmock.Sqlmock, query string) *sqlmock.ExpectedExec {
 	return mock.ExpectExec(regexp.QuoteMeta(strings.TrimSpace(query)))
 }
 
-// TestIsUserExist s checking that the isUserExist function correctly constructs and runs an SQL query to check
-// whether a user with a given email exists. It's testing that the function runs without errors, and that it returns
-// the correct result for the given input. By using a mock database connection, the test can run without needing
-// access to an actual database, and it can make sure the function is interacting with the database as expected.
-func TestIsUserExist(t *testing.T) {
+// TestCheckUserExistWithEmail tests the checkUserExistWithEmail method
+// It covers three scenarios:
+// 1. The user already exists with the given email.
+// 2. The user does not exist with the given email.
+// 3. An internal server error occurs while executing the query.
+func TestCheckUserExistWithEmail(t *testing.T) {
 	db, mock, err := sqlmock.New()
-	if err != nil {
-		t.Fatalf("an error '%s' was not expected when opening a stub database connection", err)
-	}
+	require.NoError(t, err)
 	defer db.Close()
 
-	repo := NewUserRepositoryDB(db, testLogger)
+	logger := slog.New(slog.NewTextHandler(os.Stdout, nil))
+	repo := NewUserRepositoryDB(db, logger)
 
-	email := "test@example.com"
+	t.Run("User exists", func(t *testing.T) {
+		mock.ExpectQuery("SELECT (.+) FROM users WHERE email = \\$1").
+			WithArgs("existing@email.com").
+			WillReturnRows(sqlmock.NewRows([]string{"exists"}).AddRow(true))
 
-	expectQuery(mock, sqlIsUserExists).WithArgs(email).WillReturnRows(sqlmock.NewRows([]string{"exists"}).AddRow(true))
+		apiErr := repo.checkUserExistWithEmail("existing@email.com")
+		require.NotNil(t, apiErr)
+		require.Equal(t, "user already exists with this email", apiErr.AsMessage())
+	})
 
-	exists, err := repo.isUserExist(email)
+	t.Run("User does not exist", func(t *testing.T) {
+		mock.ExpectQuery("SELECT (.+) FROM users WHERE email = \\$1").
+			WithArgs("new@email.com").
+			WillReturnRows(sqlmock.NewRows([]string{"exists"}).AddRow(false))
 
-	require.NoError(t, err)
-	require.True(t, exists)
+		apiErr := repo.checkUserExistWithEmail("new@email.com")
+		require.Nil(t, apiErr)
+	})
+
+	t.Run("Internal Server Error", func(t *testing.T) {
+		mock.ExpectQuery("SELECT (.+) FROM users WHERE email = \\$1").
+			WithArgs("error@email.com").
+			WillReturnError(errors.New("some internal error"))
+
+		apiErr := repo.checkUserExistWithEmail("error@email.com")
+		require.NotNil(t, apiErr)
+		require.Equal(t, "unexpected error on checking user exists", apiErr.AsMessage())
+	})
 }
 
 // TestFindUserByID tests the findUserByID method of UserRepositoryDB,
@@ -196,7 +216,7 @@ func TestCreate(t *testing.T) {
 		salt := "some_salt"
 		rows := mockUserRows(mockUser)
 
-		expectQuery(mock, sqlIsUserExists).WithArgs(mockUser.Email).WillReturnRows(sqlmock.NewRows([]string{"exists"}).AddRow(false))
+		expectQuery(mock, sqlCheckUserExistsWithEmail).WithArgs(mockUser.Email).WillReturnRows(sqlmock.NewRows([]string{"exists"}).AddRow(false))
 		mock.ExpectBegin()
 		expectQuery(mock, sqlInsertUserWithReturnID).
 			WithArgs(mockUser.Email, mockUser.PasswordHash, mockUser.FullName, mockUser.Phone, mockUser.SignUpOption, mockUser.Timezone).
@@ -221,7 +241,7 @@ func TestCreate(t *testing.T) {
 		mockUser := mockUserObj()
 		salt := "some_salt"
 
-		expectQuery(mock, sqlIsUserExists).WithArgs(mockUser.Email).WillReturnRows(sqlmock.NewRows([]string{"exists"}).AddRow(true))
+		expectQuery(mock, sqlCheckUserExistsWithEmail).WithArgs(mockUser.Email).WillReturnRows(sqlmock.NewRows([]string{"exists"}).AddRow(true))
 
 		_, err = repo.Create(mockUser, salt)
 		require.Error(t, err)
@@ -231,7 +251,7 @@ func TestCreate(t *testing.T) {
 		mockUser := mockUserObj()
 		salt := "some_salt"
 
-		expectQuery(mock, sqlIsUserExists).WithArgs(mockUser.Email).WillReturnRows(sqlmock.NewRows([]string{"exists"}).AddRow(false))
+		expectQuery(mock, sqlCheckUserExistsWithEmail).WithArgs(mockUser.Email).WillReturnRows(sqlmock.NewRows([]string{"exists"}).AddRow(false))
 		mock.ExpectBegin()
 		expectQuery(mock, sqlInsertUserWithReturnID).WillReturnError(errors.New("db error"))
 		mock.ExpectRollback()
@@ -264,7 +284,7 @@ func TestUpdate(t *testing.T) {
 		rows := mockUserRows(updateUser)
 
 		expectQuery(mock, sqlFindUserByUUID).WithArgs(existingUser.UserUUID).WillReturnRows(mockUserRows(existingUser))
-		expectQuery(mock, sqlIsUserExists).WithArgs(updateUser.Email).WillReturnRows(sqlmock.NewRows([]string{"exists"}).AddRow(false))
+		expectQuery(mock, sqlCheckUserExistsWithEmail).WithArgs(updateUser.Email).WillReturnRows(sqlmock.NewRows([]string{"exists"}).AddRow(false))
 		expectExec(mock, sqlUpdateUser).
 			WithArgs(updateUser.Email, existingUser.PasswordHash, updateUser.FullName, updateUser.Phone, existingUser.SignUpOption, existingUser.UserID).
 			WillReturnResult(sqlmock.NewResult(1, 1))
@@ -290,7 +310,7 @@ func TestUpdate(t *testing.T) {
 		updateUser.Email = "new@example.com"
 
 		expectQuery(mock, sqlFindUserByUUID).WithArgs(existingUser.UserUUID).WillReturnRows(mockUserRows(existingUser))
-		expectQuery(mock, sqlIsUserExists).WithArgs(updateUser.Email).WillReturnRows(sqlmock.NewRows([]string{"exists"}).AddRow(true))
+		expectQuery(mock, sqlCheckUserExistsWithEmail).WithArgs(updateUser.Email).WillReturnRows(sqlmock.NewRows([]string{"exists"}).AddRow(true))
 
 		_, err := repo.Update(updateUser)
 		require.Error(t, err)
