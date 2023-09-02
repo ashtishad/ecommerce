@@ -14,6 +14,8 @@ import (
 	"time"
 )
 
+var testLogger = slog.New(slog.NewTextHandler(os.Stdout, nil))
+
 // helper functions
 func mockUserObj() User {
 	return User{
@@ -56,7 +58,7 @@ func TestIsUserExist(t *testing.T) {
 	}
 	defer db.Close()
 
-	repo := NewUserRepositoryDB(db, nil)
+	repo := NewUserRepositoryDB(db, testLogger)
 
 	email := "test@example.com"
 
@@ -79,8 +81,7 @@ func TestFindUserByID(t *testing.T) {
 	require.NoError(t, err)
 	defer db.Close()
 
-	logger := slog.New(slog.NewTextHandler(os.Stdout, nil))
-	repo := NewUserRepositoryDB(db, logger)
+	repo := NewUserRepositoryDB(db, testLogger)
 
 	t.Run("Find user by id successful", func(t *testing.T) {
 		mockUser := mockUserObj()
@@ -131,8 +132,7 @@ func TestFindUserByUUID(t *testing.T) {
 	require.NoError(t, err)
 	defer db.Close()
 
-	logger := slog.New(slog.NewTextHandler(os.Stdout, nil))
-	repo := NewUserRepositoryDB(db, logger)
+	repo := NewUserRepositoryDB(db, testLogger)
 
 	t.Run("Find user by uuid successful", func(t *testing.T) {
 		mockUser := mockUserObj()
@@ -162,13 +162,14 @@ func TestFindUserByUUID(t *testing.T) {
 
 	t.Run("Internal Server Error", func(t *testing.T) {
 		UserUUID := "some-uuid"
+		expectedErr := errors.New("error scanning user data by uuid")
 		mock.ExpectQuery("SELECT (.+) FROM users WHERE user_id = \\$1").
 			WithArgs(UserUUID).
-			WillReturnError(errors.New("some internal error"))
+			WillReturnError(expectedErr)
 
 		user, apiErr := repo.findUserByUUID(UserUUID)
 		require.NotNil(t, apiErr)
-		require.Equal(t, "error scanning user data by uuid", apiErr.AsMessage())
+		require.Equal(t, expectedErr.Error(), apiErr.AsMessage())
 		require.Equal(t, http.StatusInternalServerError, apiErr.StatusCode())
 		require.Nil(t, user)
 	})
@@ -188,7 +189,7 @@ func TestCreate(t *testing.T) {
 	require.NoError(t, err)
 	defer db.Close()
 
-	repo := NewUserRepositoryDB(db, nil)
+	repo := NewUserRepositoryDB(db, testLogger)
 
 	t.Run("User created successfully", func(t *testing.T) {
 		mockUser := mockUserObj()
@@ -254,7 +255,7 @@ func TestUpdate(t *testing.T) {
 	require.NoError(t, err)
 	defer db.Close()
 
-	repo := NewUserRepositoryDB(db, nil)
+	repo := NewUserRepositoryDB(db, testLogger)
 
 	t.Run("User updated successfully", func(t *testing.T) {
 		existingUser := mockUserObj()
@@ -313,7 +314,7 @@ func TestFindAll(t *testing.T) {
 	require.NoError(t, err)
 	defer db.Close()
 
-	repo := UserRepositoryDB{db: db}
+	repo := UserRepositoryDB{db: db, l: testLogger}
 
 	t.Run("Two Filters applied successfully, FromID and PageSize", func(t *testing.T) {
 		mockUser := mockUserObj()
