@@ -6,6 +6,9 @@ import (
 	"github.com/DATA-DOG/go-sqlmock"
 	"github.com/ashtishad/ecommerce/users-api/pkg/constants"
 	"github.com/stretchr/testify/require"
+	"log/slog"
+	"net/http"
+	"os"
 	"regexp"
 	"strings"
 	"testing"
@@ -66,60 +69,56 @@ func TestIsUserExist(t *testing.T) {
 	require.True(t, exists)
 }
 
+// TestFindUserByID tests the findUserByID method of UserRepositoryDB,
+// checks correct user domain struct outputs and http status code if error occurred
+// It covers the following scenarios:
+// 1. Successful retrieval of a user by ID.
+// 2. User not found.
+// 3. Internal server error.
 func TestFindUserByID(t *testing.T) {
 	db, mock, err := sqlmock.New()
 	require.NoError(t, err)
 	defer db.Close()
 
-	repo := NewUserRepositoryDB(db, nil)
+	logger := slog.New(slog.NewTextHandler(os.Stdout, nil))
+	repo := NewUserRepositoryDB(db, logger)
 
-	// Test case 1: user exists
-	userID := 1
-	mockUser := User{
-		UserID:       userID,
-		UserUUID:     "some-uuid",
-		Email:        "test@example.com",
-		PasswordHash: "hashed_password",
-		FullName:     "Test User",
-		Phone:        "1234567890",
-		SignUpOption: constants.SignupOptGeneral,
-		Status:       constants.UserStatusActive,
-		Timezone:     "asia/dhaka",
-		CreatedAt:    time.Now().UTC(),
-		UpdatedAt:    time.Now().UTC(),
-	}
+	t.Run("Find user by id successful", func(t *testing.T) {
+		mockUser := mockUserObj()
+		rows := mockUserRows(mockUser)
 
-	rows := sqlmock.NewRows([]string{"user_id", "user_uuid", "email", "password_hash", "full_name", "phone", "sign_up_option", "status", "timezone", "created_at", "updated_at"}).
-		AddRow(mockUser.UserID, mockUser.UserUUID, mockUser.Email, mockUser.PasswordHash, mockUser.FullName, mockUser.Phone, mockUser.SignUpOption, mockUser.Status, mockUser.Timezone, mockUser.CreatedAt, mockUser.UpdatedAt)
+		mock.ExpectQuery("SELECT (.+) FROM users WHERE user_id = \\$1").
+			WithArgs(1).
+			WillReturnRows(rows)
 
-	// Test case 1: user exists
-	expectQuery(mock, sqlFindUserByID).WithArgs(userID).WillReturnRows(rows)
+		user, apiErr := repo.findUserByID(1)
+		require.Nil(t, apiErr)
+		require.Equal(t, mockUser, *user)
+	})
 
-	user, err := repo.findUserByID(userID)
+	t.Run("User not found", func(t *testing.T) {
+		mock.ExpectQuery("SELECT (.+) FROM users WHERE user_id = \\$1").
+			WithArgs(2).
+			WillReturnError(sql.ErrNoRows)
 
-	require.NoError(t, err)
-	require.Equal(t, mockUser, *user)
+		user, apiErr := repo.findUserByID(2)
+		require.NotNil(t, apiErr)
+		require.Equal(t, "user not found by id", apiErr.AsMessage())
+		require.Equal(t, http.StatusNotFound, apiErr.StatusCode())
+		require.Nil(t, user)
+	})
 
-	// Test case 2: user does not exist
-	userID = 999
-	expectQuery(mock, sqlFindUserByID).WithArgs(userID).WillReturnError(sql.ErrNoRows)
+	t.Run("Internal Server Error", func(t *testing.T) {
+		mock.ExpectQuery("SELECT (.+) FROM users WHERE user_id = \\$1").
+			WithArgs(3).
+			WillReturnError(errors.New("some internal error"))
 
-	user, err = repo.findUserByID(userID)
-
-	require.Error(t, err)
-	require.True(t, errors.Is(err, sql.ErrNoRows))
-	require.Nil(t, user)
-
-	// Test case 3: internal error occurs
-	userID = 500
-	expectQuery(mock, sqlFindUserByID).WithArgs(userID).WillReturnError(errors.New("internal error"))
-
-	user, err = repo.findUserByID(userID)
-	expectedError := errors.New("error scanning user data: internal error")
-
-	require.Error(t, err)
-	require.Equal(t, expectedError.Error(), err.Error())
-	require.Nil(t, user)
+		user, apiErr := repo.findUserByID(3)
+		require.NotNil(t, apiErr)
+		require.Equal(t, "error scanning user data by id", apiErr.AsMessage())
+		require.Equal(t, http.StatusInternalServerError, apiErr.StatusCode())
+		require.Nil(t, user)
+	})
 }
 
 func TestFindUserByUUID(t *testing.T) {

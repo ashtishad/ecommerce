@@ -12,6 +12,8 @@ type APIError interface {
 	Wrap(err error) APIError
 
 	StatusCode() int
+
+	AsMessage() string
 }
 
 // apiError is a concrete implementation of the APIError interface.
@@ -23,6 +25,10 @@ type apiError struct {
 
 func (e apiError) StatusCode() int {
 	return e.Code
+}
+
+func (e apiError) AsMessage() string {
+	return e.Message
 }
 
 // Error implements the error interface.
