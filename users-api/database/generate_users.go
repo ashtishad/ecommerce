@@ -1,4 +1,4 @@
-package generate
+package database
 
 import (
 	"database/sql"

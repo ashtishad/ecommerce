@@ -55,7 +55,7 @@ func StartUsersAPI() {
 		l.Error("error applying migration: %v", err)
 	}
 
-	// generate.GenerateUsers(conn, 1000)
+	// database.GenerateUsers(conn, 1000)
 
 	// wire up the handler
 	userRepositoryDB := domain.NewUserRepositoryDB(conn, l)
