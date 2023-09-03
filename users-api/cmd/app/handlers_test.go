@@ -109,3 +109,73 @@ func TestUpdateUserHandler(t *testing.T) {
 
 	assert.Equal(t, expectedUserResponse, &receivedUser)
 }
+
+func TestGetUsersHandler(t *testing.T) {
+	gin.SetMode(gin.TestMode)
+	r := gin.Default()
+
+	mockUserService := new(service.MockUserService)
+	us := UserHandlers{service: mockUserService}
+
+	expectedUsers := []domain.UserResponseDTO{
+		{
+			UserUUID:     "uuid1",
+			Email:        "user1@example.com",
+			FullName:     "User One",
+			Phone:        "0198747782808",
+			SignUpOption: "general",
+			Status:       "active",
+			Timezone:     "America/New_York",
+		},
+		{
+			UserUUID:     "uuid2",
+			Email:        "user2@example.com",
+			FullName:     "User Two",
+			Phone:        "0198747782808",
+			SignUpOption: "google",
+			Status:       "active",
+			Timezone:     "Australia/Sydney",
+		},
+	}
+
+	expectedPageInfo := &domain.NextPageInfo{
+		HasNextPage: true,
+		StartCursor: 1,
+		EndCursor:   2,
+		TotalCount:  4,
+	}
+
+	mockUserService.On("GetAllUsers", mock.AnythingOfType("domain.FindAllUsersOptionsDTO")).
+		Return(expectedUsers, expectedPageInfo, nil)
+
+	r.GET("/users", us.GetUsersHandler)
+
+	testCases := []struct {
+		queryString string
+	}{
+		{""},
+		{"?fromID=1&pageSize=2"},
+		{"?status=active"},
+		{"?signUpOption=general"},
+		{"?timezone=Asia/Dhaka"},
+		{"?fromID=1&pageSize=2&status=active&signUpOption=general&timezone=Asia/Dhaka"},
+	}
+
+	for _, tc := range testCases {
+		req, _ := http.NewRequest("GET", "/users"+tc.queryString, nil)
+		resp := httptest.NewRecorder()
+		r.ServeHTTP(resp, req)
+
+		assert.Equal(t, http.StatusOK, resp.Code)
+
+		var result struct {
+			Users    []domain.UserResponseDTO `json:"users"`
+			PageInfo *domain.NextPageInfo     `json:"page_info"`
+		}
+		err := json.NewDecoder(resp.Body).Decode(&result)
+		assert.Nil(t, err)
+
+		assert.Equal(t, expectedUsers, result.Users)
+		assert.Equal(t, expectedPageInfo, result.PageInfo)
+	}
+}
