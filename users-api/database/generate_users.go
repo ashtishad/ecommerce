@@ -2,12 +2,10 @@ package database
 
 import (
 	"database/sql"
-	"fmt"
 	"github.com/ashtishad/ecommerce/users-api/pkg/constants"
 	"github.com/ashtishad/ecommerce/users-api/pkg/hashpassword"
 	"log/slog"
 	"math/rand"
-	"os"
 	"time"
 
 	"github.com/brianvoe/gofakeit/v6"
@@ -17,14 +15,12 @@ import (
 // It accepts a *sql.DB instance to interact with the actual database and
 // an integer n to specify how many records do we want to insert,
 // The function uses a transaction to insert the users, rolling back the transaction and logging an error message if anything goes wrong.
-func GenerateUsers(db *sql.DB, n int) {
+func GenerateUsers(db *sql.DB, l *slog.Logger, n int) {
 	gofakeit.Seed(0)
-
-	logger := slog.New(slog.NewTextHandler(os.Stderr, nil))
 
 	tx, err := db.Begin()
 	if err != nil {
-		logger.Error("error starting transaction: ", err)
+		l.Warn("unexpected error on tx begin", "err", err.Error())
 		return
 	}
 
@@ -32,7 +28,8 @@ func GenerateUsers(db *sql.DB, n int) {
 		if err != nil {
 			rollBackErr := tx.Rollback()
 			if rollBackErr != nil {
-				logger.Error("failed to rollback: ", rollBackErr)
+				l.Warn("failed to rollback", "err", rollBackErr.Error())
+				return
 			}
 		}
 	}()
@@ -45,7 +42,7 @@ func GenerateUsers(db *sql.DB, n int) {
 
 		salt, err := hashpassword.GenerateSalt()
 		if err != nil {
-			logger.Error("error generating salt: ", err)
+			l.Warn("failed to generate salt", "err", err.Error())
 			return
 		}
 		hashedPassword := hashpassword.HashPassword(password, salt)
@@ -58,13 +55,13 @@ func GenerateUsers(db *sql.DB, n int) {
 		err = tx.QueryRow(`INSERT INTO users (email, password_hash, full_name, phone, sign_up_option, status, timezone) VALUES ($1, $2, $3, $4, $5, $6, $7) RETURNING user_id`,
 			email, hashedPassword, fullName, phone, signUpOption, userStatus, timezone).Scan(&userID)
 		if err != nil {
-			logger.Error("error inserting user and fetching ID: ", err)
+			l.Warn("failed to insert user", "err", err.Error())
 			return
 		}
 
 		_, err = tx.Exec(`INSERT INTO user_salts (user_id, salt) VALUES ($1, $2)`, userID, salt)
 		if err != nil {
-			logger.Error("error inserting salt: ", err)
+			l.Warn("failed to insert salt", "err", err.Error())
 			return
 		}
 
@@ -72,30 +69,30 @@ func GenerateUsers(db *sql.DB, n int) {
 	}
 
 	if err = tx.Commit(); err != nil {
-		logger.Error("error committing transaction: ", err)
+		l.Warn("failed to commit", "err", err.Error())
 		return
 	}
 
-	// Update users_user_id_seq
-	query := fmt.Sprintf("SELECT setval('users_user_id_seq', %d)", n)
-	_, err = db.Exec(query)
+	// update users_user_id_seq
+	query := "SELECT setval('users_user_id_seq', $1)"
+	_, err = db.Exec(query, n)
 	if err != nil {
-		logger.Error("error updating sequence: ", err)
+		l.Warn("failed to update user_id_seq", "err", err.Error())
 		return
 	}
 }
 
 // getRandomUserStatus generates three possible statuses: "active", "inactive", or "deleted".
-// The status "active" has a 70% chance of being chosen, "inactive" has a 15% chance, and "deleted" also has a 15% chance.
+// The status "active" has a 80% chance of being chosen, "inactive" and "deleted" both have a 10% chance.
 func getRandomUserStatus() string {
 	randNumber := rand.Intn(100)
 
 	switch {
-	case randNumber < 70: // 70% chance
+	case randNumber < 80: // 80% chance
 		return constants.UserStatusActive
-	case randNumber < 85: // 15% chance
+	case randNumber < 90: // 10% chance
 		return constants.UserStatusInactive
-	default: // 15% chance
+	default: // 10% chance
 		return constants.UserStatusDeleted
 	}
 }
