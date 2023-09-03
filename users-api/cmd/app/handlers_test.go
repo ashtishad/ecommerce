@@ -13,6 +13,8 @@ import (
 	"testing"
 )
 
+// TestCreateUserHandler tests the http.MethodPost request to create a new user.
+// It checks the returned status code and payload to ensure they match the expected values.
 func TestCreateUserHandler(t *testing.T) {
 	gin.SetMode(gin.TestMode)
 
@@ -62,6 +64,8 @@ func TestCreateUserHandler(t *testing.T) {
 	assert.Equal(t, expectedUserResponse, &receivedUser)
 }
 
+// TestUpdateUserHandler tests the HTTP http.MethodPut request to update an existing user's information.
+// It checks the returned status code and payload to ensure they match the expected values.
 func TestUpdateUserHandler(t *testing.T) {
 	gin.SetMode(gin.TestMode)
 
@@ -110,6 +114,8 @@ func TestUpdateUserHandler(t *testing.T) {
 	assert.Equal(t, expectedUserResponse, &receivedUser)
 }
 
+// TestGetUsersHandler tests the HTTP http.MethodGet request to fetch all users with optional query parameters.
+// It checks the returned status code and payload to ensure they match the expected values.
 func TestGetUsersHandler(t *testing.T) {
 	gin.SetMode(gin.TestMode)
 	r := gin.Default()
