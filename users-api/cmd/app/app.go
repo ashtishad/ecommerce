@@ -48,14 +48,14 @@ func StartUsersAPI() {
 		database.GetDSNString(l),
 	)
 	if err != nil {
-		l.Error("error creating migration: %v", err)
+		l.Error("error creating migration: %v", "err", err.Error())
 	}
 
 	if err := m.Up(); err != nil && !errors.Is(err, migrate.ErrNoChange) {
-		l.Error("error applying migration: %v", err)
+		l.Error("error applying migration: %v", "err", err.Error())
 	}
 
-	// database.GenerateUsers(conn, 1000)
+	// database.GenerateUsers(conn, l, 1000)
 
 	// wire up the handler
 	userRepositoryDB := domain.NewUserRepositoryDB(conn, l)
@@ -83,7 +83,7 @@ func StartUsersAPI() {
 	// start server
 	go func() {
 		if err := srv.ListenAndServe(); err != nil && !errors.Is(err, http.ErrServerClosed) {
-			l.Error("could not start server: %v\n", err)
+			l.Error("could not start server: %v\n", "err", err.Error())
 		}
 	}()
 
