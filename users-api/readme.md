@@ -2,15 +2,17 @@
 
 #### Tools
 
-* Language used: GoLang
-* Database Used: PostgreSQL
-* Design       : Domain driven design
+* Language used: GoLang.
+* Database Used: PostgreSQL.
+* Design       : Domain driven design.
+* Logging      : Structured log with [slog](https://pkg.go.dev/log/slog#section-documentation)
 * 3rd Party Libraries Used:
   * Web Framework: [gin](https://github.com/gin-gonic/gin)
   * Postgres Driver : [pq](https://pkg.go.dev/github.com/lib/pq#section-readme)
   * DB migrations: [migrate](https://github.com/golang-migrate/migrate)
   * Mock Testing: [go-sqlmock](https://github.com/DATA-DOG/go-sqlmock)
   * Mock Testing: [testify](https://github.com/stretchr/testify/)
+  * Fake data generate: [gofakeit](https://github.com/brianvoe/gofakeit)
 
 #### Project Structure(Users-API)
 ```
@@ -22,7 +24,8 @@
 │       └── handlers.go                   <-- User handlers for app endpoints
 ├── database
 │   └── postgres_db_conn.go               <-- Postgresql DB Connection config.
-│   └── postgres_db_conn_test.go          <-- Connection string making test..
+│   └── postgres_db_conn_test.go          <-- Connection string making test.
+│   └── generate_users.go                 <-- Generate n users in database.
 ├── internal
 │   └── domain
 │       └── user.go                       <-- User struct based on database schema.
@@ -81,10 +84,10 @@ curl --location --request PUT 'localhost:8000/users/{user_id}' \
 ##### Get All Users (Paginated, Optional query params "status", "fromID", "pageSize", "timezone" and "signUpOption"
 
 1. Populate users from users-api/cmd/app.go
-   uncomment this line generate.GenerateUsers(conn, 1000)
-   it will generate 1000 users when app starts(so, consider comment out it again after first run)
+   uncomment this line database.GenerateUsers(conn, 1000)
+   it will generate 1000 users when app builds(so, consider comment out it again after first run)
 2. Used cursor based pagination strategy with UserID(e.g: 0,1,5000) as cursor.
-3. Timezone region example "UTC", "Asia/Dhaka"
+3. Timezone region example "UTC", "Asia/Dhaka".
 
 Request examples with or without Params
 

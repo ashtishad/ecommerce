@@ -1,14 +1,16 @@
 package domain
 
+import "github.com/ashtishad/ecommerce/lib"
+
 // UserRepository is the secondary port of this architecture
 // It will connect to the Database adapter or mock/stub adapter
 type UserRepository interface {
-	Create(user User, salt string) (*User, error) // create(unique:email)
-	Update(user User) (*User, error)              // update(unique:uuid)
-	FindAll(opts FindAllUsersOptions) ([]User, *NextPageInfo, error)
-	findUserByID(userID int) (*User, error)
-	findUserByUUID(userUUID string) (*User, error) // helper needed in update
-	isUserExist(email string) (bool, error)
+	Create(user User, salt string) (*User, lib.APIError) // create(unique:email)
+	Update(user User) (*User, lib.APIError)              // update(unique:uuid)
+	FindAll(opts FindAllUsersOptions) ([]User, *NextPageInfo, lib.APIError)
+	findUserByID(userID int) (*User, lib.APIError)
+	findUserByUUID(userUUID string) (*User, lib.APIError) // helper needed in update
+	checkUserExistWithEmail(email string) lib.APIError
 }
 
 // FindAllUsersOptions is filters for FindAll Users

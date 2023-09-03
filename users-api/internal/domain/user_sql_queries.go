@@ -11,6 +11,6 @@ const (
                        FROM users WHERE user_id = $1`
 	sqlFindUserByUUID = `SELECT user_id, user_uuid, email, password_hash, full_name, phone, sign_up_option, status,timezone, created_at, updated_at 
                        FROM users WHERE user_uuid = $1`
-	sqlInsertUserIDSalt = `INSERT INTO user_salts (user_id, salt) VALUES ($1, $2)`
-	sqlIsUserExists     = `SELECT EXISTS(SELECT 1 FROM users WHERE email = $1)`
+	sqlInsertUserIDSalt         = `INSERT INTO user_salts (user_id, salt) VALUES ($1, $2)`
+	sqlCheckUserExistsWithEmail = `SELECT EXISTS(SELECT 1 FROM users WHERE email = $1)`
 )

@@ -4,35 +4,40 @@ import (
 	"database/sql"
 	"errors"
 	"fmt"
+	"github.com/ashtishad/ecommerce/lib"
 	"github.com/ashtishad/ecommerce/users-api/database"
 	"github.com/ashtishad/ecommerce/users-api/internal/domain"
 	"github.com/ashtishad/ecommerce/users-api/internal/service"
-	"github.com/ashtishad/ecommerce/users-api/pkg/ginconf"
 	"github.com/gin-gonic/gin"
 	"github.com/golang-migrate/migrate/v4"
 	_ "github.com/golang-migrate/migrate/v4/database/postgres"
 	_ "github.com/golang-migrate/migrate/v4/source/file"
-	"log"
+	"log/slog"
 	"net/http"
 	"os"
 	"time"
 )
 
 func StartUsersAPI() {
-	// initiated logger, dependency injection, create once, inject it where needed
-	l := log.New(os.Stdout, "users-api ", log.LstdFlags)
+	// init slog
+	handlerOpts := lib.GetSlogConf()
 
+	l := slog.New(slog.NewTextHandler(os.Stdout, handlerOpts))
+	slog.SetDefault(l)
+	slog.Info("API NAME", "name", "users-api")
+
+	// environment variables check
 	sanityCheck(l)
 
 	gin.SetMode(gin.ReleaseMode)
 	var r = gin.New()
 
 	// database connection config
-	conn := database.GetDbClient()
+	conn := database.GetDbClient(l)
 	defer func(conn *sql.DB) {
 		dbConnCloseErr := conn.Close()
 		if dbConnCloseErr != nil {
-			l.Printf("error closing db connection %s", dbConnCloseErr.Error())
+			l.Error("error closing db connection", "err", dbConnCloseErr.Error())
 			return
 		}
 	}(conn)
@@ -40,17 +45,17 @@ func StartUsersAPI() {
 	// run db migrations if any
 	m, err := migrate.New(
 		"file://db/migrations",
-		database.GetDSNString(),
+		database.GetDSNString(l),
 	)
 	if err != nil {
-		l.Fatalf("error creating migration: %v", err)
+		l.Error("error creating migration: %v", err)
 	}
 
-	if err := m.Up(); err != nil && err != migrate.ErrNoChange {
-		l.Fatalf("error applying migration: %v", err)
+	if err := m.Up(); err != nil && !errors.Is(err, migrate.ErrNoChange) {
+		l.Error("error applying migration: %v", err)
 	}
 
-	// generate.GenerateUsers(conn, 1000)
+	// database.GenerateUsers(conn, 1000)
 
 	// wire up the handler
 	userRepositoryDB := domain.NewUserRepositoryDB(conn, l)
@@ -70,20 +75,20 @@ func StartUsersAPI() {
 	setUsersApiRoutes(r, uh)
 
 	// custom logger middleware
-	r.Use(gin.LoggerWithFormatter(ginconf.Logger))
+	r.Use(gin.LoggerWithFormatter(lib.Logger))
 
 	// custom recovery middleware
-	r.Use(gin.CustomRecovery(ginconf.Recover))
+	r.Use(gin.CustomRecovery(lib.Recover))
 
 	// start server
 	go func() {
 		if err := srv.ListenAndServe(); err != nil && !errors.Is(err, http.ErrServerClosed) {
-			l.Fatalf("could not start server: %v\n", err)
+			l.Error("could not start server: %v\n", err)
 		}
 	}()
 
 	// graceful shutdown
-	ginconf.GracefulShutdown(srv)
+	lib.GracefulShutdown(srv)
 }
 
 func setUsersApiRoutes(r *gin.Engine, uh UserHandlers) {
