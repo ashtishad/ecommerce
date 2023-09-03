@@ -4,6 +4,7 @@ import (
 	"database/sql"
 	"errors"
 	"github.com/DATA-DOG/go-sqlmock"
+	"github.com/ashtishad/ecommerce/lib"
 	"github.com/stretchr/testify/require"
 	"log/slog"
 	"net/http"
@@ -86,7 +87,7 @@ func TestCheckUserExistWithEmail(t *testing.T) {
 
 		apiErr := repo.checkUserExistWithEmail("error@email.com")
 		require.NotNil(t, apiErr)
-		require.Equal(t, "unexpected error on checking user exists", apiErr.AsMessage())
+		require.Equal(t, lib.UnexpectedDatabaseErr, apiErr.AsMessage())
 	})
 }
 
@@ -123,7 +124,7 @@ func TestFindUserByID(t *testing.T) {
 
 		user, apiErr := repo.findUserByID(2)
 		require.NotNil(t, apiErr)
-		require.Equal(t, "user not found by id", apiErr.AsMessage())
+		require.Equal(t, lib.UnexpectedDatabaseErr, apiErr.AsMessage())
 		require.Equal(t, http.StatusNotFound, apiErr.StatusCode())
 		require.Nil(t, user)
 	})
@@ -135,7 +136,7 @@ func TestFindUserByID(t *testing.T) {
 
 		user, apiErr := repo.findUserByID(3)
 		require.NotNil(t, apiErr)
-		require.Equal(t, "error scanning user data by id", apiErr.AsMessage())
+		require.Equal(t, lib.UnexpectedDatabaseErr, apiErr.AsMessage())
 		require.Equal(t, http.StatusInternalServerError, apiErr.StatusCode())
 		require.Nil(t, user)
 	})
@@ -175,21 +176,20 @@ func TestFindUserByUUID(t *testing.T) {
 
 		user, apiErr := repo.findUserByUUID(UserUUID)
 		require.NotNil(t, apiErr)
-		require.Equal(t, "user not found by uuid", apiErr.AsMessage())
+		require.Equal(t, lib.UnexpectedDatabaseErr, apiErr.AsMessage())
 		require.Equal(t, http.StatusNotFound, apiErr.StatusCode())
 		require.Nil(t, user)
 	})
 
 	t.Run("Internal Server Error", func(t *testing.T) {
 		UserUUID := "some-uuid"
-		expectedErr := errors.New("error scanning user data by uuid")
 		mock.ExpectQuery("SELECT (.+) FROM users WHERE user_id = \\$1").
 			WithArgs(UserUUID).
-			WillReturnError(expectedErr)
+			WillReturnError(errors.New("error scanning user data by uuid"))
 
 		user, apiErr := repo.findUserByUUID(UserUUID)
 		require.NotNil(t, apiErr)
-		require.Equal(t, expectedErr.Error(), apiErr.AsMessage())
+		require.Equal(t, lib.UnexpectedDatabaseErr, apiErr.AsMessage())
 		require.Equal(t, http.StatusInternalServerError, apiErr.StatusCode())
 		require.Nil(t, user)
 	})
