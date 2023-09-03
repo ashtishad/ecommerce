@@ -135,7 +135,8 @@ func (d *UserRepositoryDB) checkUserExistWithEmail(email string) lib.APIError {
 		return lib.NewInternalServerError(lib.UnexpectedDatabaseErr, err)
 	}
 	if exists == true {
-		return lib.NewBadRequestError(ErrUserAlreadyExistEmail).Wrap(err)
+		d.l.Error(ErrUserAlreadyExistEmail, "email", email)
+		return lib.NewBadRequestError(ErrUserAlreadyExistEmail)
 	}
 	return nil
 }
