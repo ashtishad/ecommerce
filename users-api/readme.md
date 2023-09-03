@@ -22,10 +22,11 @@
 │       └── app.go                        <-- Define routes, logger setup, wire up handler, start users-api server
 │       ├── app_helpers.go                <-- Sanity check.
 │       └── handlers.go                   <-- User handlers for app endpoints
+│       └── handlers_test.go              <-- User handlers tests only for 200 OK.
 ├── database
 │   └── postgres_db_conn.go               <-- Postgresql DB Connection config.
 │   └── postgres_db_conn_test.go          <-- Connection string making test.
-│   └── generate_users.go                 <-- Generate n users in database.
+│   └── generate_users.go                 <-- Generate n(1000) users in database.
 ├── internal
 │   └── domain
 │       └── user.go                       <-- User struct based on database schema.
@@ -37,6 +38,7 @@
 │   └── service
 │       └── user_service.go               <-- Generate salt,hash pass, covert dto to domain and vice versa.
 │       └── service_helpers.go.go         <-- Included user input validation.
+│       └── mock_user_service.go          <-- Mocked user services for handlers test.
 ├── pkg
 │   └── constants
 │       └── constants.go                  <-- Included constants for input validation regexes, database enum values.
