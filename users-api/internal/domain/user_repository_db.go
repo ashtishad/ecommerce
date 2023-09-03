@@ -25,14 +25,15 @@ func (d *UserRepositoryDB) Create(user User, salt string) (*User, lib.APIError) 
 
 	tx, err := d.db.Begin()
 	if err != nil {
-		return nil, lib.NewInternalServerError("unexpected error on tx begin", err)
+		d.l.Error(lib.ErrTxBegin, "err", err)
+		return nil, lib.NewInternalServerError(lib.UnexpectedDatabaseErr, err)
 	}
 
 	defer func() {
 		if err != nil {
 			rollBackErr := tx.Rollback()
 			if rollBackErr != nil {
-				d.l.Error("failed to rollback in create user", "err", rollBackErr.Error())
+				d.l.Error(lib.ErrTxRollback, "err", rollBackErr.Error())
 				return
 			}
 		}
@@ -41,16 +42,19 @@ func (d *UserRepositoryDB) Create(user User, salt string) (*User, lib.APIError) 
 	var userID int
 	err = tx.QueryRowContext(context.Background(), sqlInsertUserWithReturnID, user.Email, user.PasswordHash, user.FullName, user.Phone, user.SignUpOption, user.Timezone).Scan(&userID)
 	if err != nil || userID == 0 {
-		return nil, lib.NewInternalServerError("error creating user", err)
+		d.l.Error(ErrCreatingUser, "err", err.Error())
+		return nil, lib.NewInternalServerError(lib.UnexpectedDatabaseErr, err)
 	}
 
 	_, err = tx.Exec(sqlInsertUserIDSalt, userID, salt)
 	if err != nil {
-		return nil, lib.NewInternalServerError("error inserting user id and salt", err)
+		d.l.Error(ErrInsertUserIDSalt, "err", err.Error())
+		return nil, lib.NewInternalServerError(lib.UnexpectedDatabaseErr, err)
 	}
 
 	if err = tx.Commit(); err != nil {
-		return nil, lib.NewInternalServerError("error committing db transaction", err)
+		d.l.Error(lib.ErrTxCommit, "err", err.Error())
+		return nil, lib.NewInternalServerError(lib.UnexpectedDatabaseErr, err)
 	}
 
 	return d.findUserByID(userID)
@@ -75,7 +79,8 @@ func (d *UserRepositoryDB) Update(user User) (*User, lib.APIError) {
 
 	_, err := d.db.Exec(sqlUpdateUser, user.Email, existingUser.PasswordHash, user.FullName, user.Phone, existingUser.SignUpOption, existingUser.UserID)
 	if err != nil {
-		return nil, lib.NewInternalServerError("error updating user", err)
+		d.l.Error(ErrUpdateUser, "err", err.Error())
+		return nil, lib.NewInternalServerError(lib.UnexpectedDatabaseErr, err)
 	}
 
 	return d.findUserByID(existingUser.UserID)
@@ -90,9 +95,11 @@ func (d *UserRepositoryDB) findUserByID(userID int) (*User, lib.APIError) {
 	err := row.Scan(&user.UserID, &user.UserUUID, &user.Email, &user.PasswordHash, &user.FullName, &user.Phone, &user.SignUpOption, &user.Status, &user.Timezone, &user.CreatedAt, &user.UpdatedAt)
 	if err != nil {
 		if errors.Is(err, sql.ErrNoRows) {
-			return nil, lib.NewNotFoundError("user not found by id")
+			d.l.Error(ErrUserNotFound, "arg", userID, "err", err.Error())
+			return nil, lib.NewNotFoundError(lib.UnexpectedDatabaseErr)
 		}
-		return nil, lib.NewInternalServerError("error scanning user data by id", err)
+		d.l.Error(ErrScanningData, "err", err.Error())
+		return nil, lib.NewInternalServerError(lib.UnexpectedDatabaseErr, err)
 	}
 
 	return &user, nil
@@ -107,9 +114,11 @@ func (d *UserRepositoryDB) findUserByUUID(userUUID string) (*User, lib.APIError)
 	err := row.Scan(&user.UserID, &user.UserUUID, &user.Email, &user.PasswordHash, &user.FullName, &user.Phone, &user.SignUpOption, &user.Status, &user.Timezone, &user.CreatedAt, &user.UpdatedAt)
 	if err != nil {
 		if errors.Is(err, sql.ErrNoRows) {
-			return nil, lib.NewNotFoundError("user not found by uuid")
+			d.l.Error(ErrUserNotFound, "arg", userUUID, "err", err.Error())
+			return nil, lib.NewNotFoundError(lib.UnexpectedDatabaseErr)
 		}
-		return nil, lib.NewInternalServerError("error scanning user data by uuid", err)
+		d.l.Error(ErrScanningData, "err", err.Error())
+		return nil, lib.NewInternalServerError(lib.UnexpectedDatabaseErr, err)
 	}
 
 	return &user, nil
@@ -122,10 +131,11 @@ func (d *UserRepositoryDB) checkUserExistWithEmail(email string) lib.APIError {
 	var exists bool
 	err := d.db.QueryRow(sqlCheckUserExistsWithEmail, email).Scan(&exists)
 	if err != nil && !errors.Is(err, sql.ErrNoRows) {
-		return lib.NewInternalServerError("unexpected error on checking user exists", err)
+		d.l.Error(ErrCheckUserByEmail, "err", err.Error())
+		return lib.NewInternalServerError(lib.UnexpectedDatabaseErr, err)
 	}
 	if exists == true {
-		return lib.NewBadRequestError("user already exists with this email")
+		return lib.NewBadRequestError(ErrUserAlreadyExistEmail).Wrap(err)
 	}
 	return nil
 }
@@ -168,12 +178,14 @@ func (d *UserRepositoryDB) FindAll(opts FindAllUsersOptions) ([]User, *NextPageI
 
 	rows, err := d.db.Query(baseQuery, args...)
 	if err != nil {
-		return nil, nil, lib.NewInternalServerError("error retrieving rows", err)
+		d.l.Warn("base query", "sql", baseQuery)
+		d.l.Error(lib.ErrRetrievingRows, "err", err.Error())
+		return nil, nil, lib.NewInternalServerError(lib.UnexpectedDatabaseErr, err)
 	}
 	defer func(rows *sql.Rows) {
 		rowsClsErr := rows.Close()
 		if rowsClsErr != nil {
-			d.l.Error("error closing rows in find all users", "err", rowsClsErr.Error())
+			d.l.Error(lib.ErrClosingRows, "err", rowsClsErr.Error())
 			return
 		}
 	}(rows)
@@ -193,7 +205,8 @@ func (d *UserRepositoryDB) FindAll(opts FindAllUsersOptions) ([]User, *NextPageI
 			&user.CreatedAt,
 			&user.UpdatedAt,
 		); err != nil {
-			return nil, nil, lib.NewInternalServerError("error scanning rows", err)
+			d.l.Error(lib.ErrScanningRows, "err", err.Error())
+			return nil, nil, lib.NewInternalServerError(lib.UnexpectedDatabaseErr, err)
 		}
 		users = append(users, user)
 	}
@@ -201,7 +214,8 @@ func (d *UserRepositoryDB) FindAll(opts FindAllUsersOptions) ([]User, *NextPageI
 	userCount := len(users)
 
 	if userCount == 0 {
-		return nil, nil, lib.NewNotFoundError("no users found")
+		d.l.Info("base query", "sql", baseQuery)
+		return nil, nil, lib.NewNotFoundError(ErrUsersNotFound)
 	}
 
 	if userCount < opts.PageSize {
@@ -215,7 +229,8 @@ func (d *UserRepositoryDB) FindAll(opts FindAllUsersOptions) ([]User, *NextPageI
 
 	var totalCount int
 	if err = d.db.QueryRow(countQuery, args[:argCount-1]...).Scan(&totalCount); err != nil {
-		return nil, nil, lib.NewInternalServerError("error calculating total rows in find all users", err)
+		d.l.Error(lib.ErrTotalCountInPagination, "err", err.Error())
+		return nil, nil, lib.NewInternalServerError(lib.UnexpectedDatabaseErr, err)
 	}
 
 	nextPageInfo.HasNextPage = totalCount > opts.PageSize
