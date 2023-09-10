@@ -14,8 +14,8 @@ type DefaultCategoryService struct {
 	repo domain.CategoryRepository
 }
 
-func NewCategoryService(repo domain.CategoryRepository) *CategoryService {
-	return NewCategoryService(repo)
+func NewCategoryService(repo domain.CategoryRepository) *DefaultCategoryService {
+	return &DefaultCategoryService{repo: repo}
 }
 
 func (s *DefaultCategoryService) NewCategory(ctx context.Context, req domain.NewCategoryRequestDTO) (*domain.CategoryResponseDTO, lib.APIError) {

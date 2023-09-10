@@ -60,15 +60,14 @@ func (d *CategoryRepoDB) findCategoryByID(ctx context.Context, categoryID int) (
 		&category.Status,
 		&category.CreatedAt,
 		&category.UpdatedAt)
+
 	if err != nil {
-		if err != nil {
-			if errors.Is(err, sql.ErrNoRows) {
-				d.l.Error("category not found", "err", err.Error())
-				return nil, lib.NewNotFoundError(lib.UnexpectedDatabaseErr)
-			}
-			d.l.Error(lib.ErrScanningRows, "err", err.Error())
-			return nil, lib.NewInternalServerError(lib.UnexpectedDatabaseErr, err)
+		if errors.Is(err, sql.ErrNoRows) {
+			d.l.Error("category not found", "err", err.Error())
+			return nil, lib.NewNotFoundError(lib.UnexpectedDatabaseErr)
 		}
+		d.l.Error(lib.ErrScanningRows, "err", err.Error())
+		return nil, lib.NewInternalServerError(lib.UnexpectedDatabaseErr, err)
 	}
 
 	return &category, nil
