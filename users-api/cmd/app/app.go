@@ -63,7 +63,7 @@ func StartUsersAPI() {
 
 	// Server Config
 	srv := &http.Server{
-		Addr:           fmt.Sprintf(":%s", os.Getenv("SERVER_PORT")),
+		Addr:           fmt.Sprintf("%s:%s", os.Getenv("SERVER_ADDRESS"), os.Getenv("SERVER_PORT")),
 		Handler:        r,
 		IdleTimeout:    100 * time.Second,
 		ReadTimeout:    10 * time.Second,
@@ -83,7 +83,7 @@ func StartUsersAPI() {
 	// start server
 	go func() {
 		if err := srv.ListenAndServe(); err != nil && !errors.Is(err, http.ErrServerClosed) {
-			l.Error("could not start server: %v\n", "err", err.Error())
+			l.Error("could not start server: %v\n", "err", err.Error(), "srv", srv.Addr)
 		}
 	}()
 
