@@ -19,25 +19,12 @@ func NewCategoryRepoDB(db *sql.DB, l *slog.Logger) *CategoryRepoDB {
 }
 
 func (d *CategoryRepoDB) CreateCategory(ctx context.Context, category Category) (*Category, lib.APIError) {
-	var existingCategoryName string
+	if apiErr := d.checkCategoryNameExists(ctx, category.Name); apiErr != nil {
+		return nil, apiErr
+	}
 
 	err := d.db.QueryRowContext(ctx,
-		"SELECT name FROM categories WHERE LOWER(name) = LOWER($1)",
-		category.Name).Scan(&existingCategoryName)
-
-	if err != nil && !errors.Is(err, sql.ErrNoRows) {
-		d.l.Error("error checking existing category:", "err", err.Error())
-		return nil, lib.NewInternalServerError(lib.UnexpectedDatabaseErr, err)
-	}
-
-	if existingCategoryName != "" {
-		d.l.Warn("category name already exists", "input_cat_name", category.Name, "exist_cat_name", existingCategoryName)
-		return nil, lib.NewDBFieldConflictError(fmt.Sprintf("category name already exists, input: %s existing:%s", category.Name, existingCategoryName))
-	}
-
-	err = d.db.QueryRowContext(ctx,
-		"INSERT INTO categories (name, description) VALUES ($1, $2) RETURNING category_id",
-		category.Name, category.Description).Scan(&category.CategoryID)
+		sqlInsertCategory, category.Name, category.Description).Scan(&category.CategoryID)
 
 	if err != nil {
 		d.l.Error("error inserting new category:", "err", err.Error())
@@ -47,11 +34,28 @@ func (d *CategoryRepoDB) CreateCategory(ctx context.Context, category Category) 
 	return d.findCategoryByID(ctx, category.CategoryID)
 }
 
+func (d *CategoryRepoDB) checkCategoryNameExists(ctx context.Context, categoryName string) lib.APIError {
+	var existingCategoryName string
+
+	err := d.db.QueryRowContext(ctx, sqlSelectCategoryName, categoryName).Scan(&existingCategoryName)
+
+	if err != nil && !errors.Is(err, sql.ErrNoRows) {
+		d.l.Error("error checking existing category:", "err", err.Error())
+		return lib.NewInternalServerError(lib.UnexpectedDatabaseErr, err)
+	}
+
+	if existingCategoryName != "" {
+		d.l.Warn("category name already exists", "input", categoryName, "existing", existingCategoryName)
+		return lib.NewDBFieldConflictError(fmt.Sprintf("category name already exists, input: %s existing:%s", categoryName, existingCategoryName))
+	}
+
+	return nil
+}
+
 // findCategoryByID takes categoryID and returns a single category record
 // returns error(500 or 404) if internal server error happened.
 func (d *CategoryRepoDB) findCategoryByID(ctx context.Context, categoryID int) (*Category, lib.APIError) {
-	query := `SELECT category_id,category_uuid,name, description,status,created_at,updated_at FROM categories where category_id= $1`
-	row := d.db.QueryRowContext(ctx, query, categoryID)
+	row := d.db.QueryRowContext(ctx, sqlSelectCategoryById, categoryID)
 
 	var category Category
 	err := row.Scan(&category.CategoryID,
