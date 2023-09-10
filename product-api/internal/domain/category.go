@@ -11,3 +11,16 @@ type Category struct {
 	CreatedAt    time.Time `json:"createdAt"`
 	UpdatedAt    time.Time `json:"updatedAt"`
 }
+
+func (c *Category) ToCategoryResponseDTO() *CategoryResponseDTO {
+	return &CategoryResponseDTO{
+		CategoryUUID:     c.CategoryUUID,
+		Name:             c.Name,
+		Description:      c.Description,
+		Status:           c.Status,
+		CreatedAt:        c.CreatedAt,
+		UpdatedAt:        c.UpdatedAt,
+		HasSubcategories: false,
+		SubCategories:    nil,
+	}
+}
