@@ -4,6 +4,7 @@ import (
 	"context"
 	"database/sql"
 	"errors"
+	"fmt"
 	"github.com/ashtishad/ecommerce/lib"
 	"log/slog"
 )
@@ -31,7 +32,7 @@ func (d *CategoryRepoDB) CreateCategory(ctx context.Context, category Category) 
 
 	if existingCategoryName != "" {
 		d.l.Warn("category name already exists", "input_cat_name", category.Name, "exist_cat_name", existingCategoryName)
-		return nil, lib.NewDBFieldConflictError("category name already exists", category.Name, existingCategoryName)
+		return nil, lib.NewDBFieldConflictError(fmt.Sprintf("category name already exists, input: %s existing:%s", category.Name, existingCategoryName))
 	}
 
 	err = d.db.QueryRowContext(ctx,

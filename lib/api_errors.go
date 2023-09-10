@@ -114,9 +114,9 @@ func NewInternalServerError(message string, err error) APIError {
 // Example usage:
 //
 //	err := NewDBFieldConflictError("category name already exists")
-func NewDBFieldConflictError(message string, inputField string, dbField string) APIError {
+func NewDBFieldConflictError(message string) APIError {
 	return apiError{
-		Message: fmt.Sprintf(message+" input: %s dbfield: %s", inputField, dbField),
+		Message: message,
 		Code:    http.StatusConflict,
 	}
 }
