@@ -21,7 +21,7 @@ func (d *CategoryRepoDB) CreateCategory(ctx context.Context, category Category) 
 	var existingCategoryName string
 
 	err := d.db.QueryRowContext(ctx,
-		"SELECT category_id FROM categories WHERE LOWER(name) = LOWER($1)",
+		"SELECT name FROM categories WHERE LOWER(name) = LOWER($1)",
 		category.Name).Scan(&existingCategoryName)
 
 	if err != nil && !errors.Is(err, sql.ErrNoRows) {
