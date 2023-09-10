@@ -5,8 +5,8 @@
 | Microservices     | Design Decisions      | Status    | Readme Link                                                               |
 |-------------------|-----------------------|-----------|---------------------------------------------------------------------------|
 | Users-API         | Go, RDBMS(PostgreSQL) | Completed | [Link](https://github.com/ashtishad/ecommerce/tree/main/users-api#readme) |
-| Auth-API          | JWT, Google Auth      | Ongoing   |                                                                           |
-| Product-API       |                       | Pending   |                                                                           |
+| Product-API       | Go, RDBMS(PostgreSQL) | Ongoing   |                                                                           |
+| Auth-API          |                       | Pending   |                                                                           |
 | Order-API         |                       | Pending   |                                                                           |
 | Cart-API          |                       | Pending   |                                                                           |
 | Payment-API       |                       | Pending   |                                                                           |
@@ -86,7 +86,8 @@
 Change environment variables in Makefile: Set values in Makefile stored in project root.
 
 - SERVER_ADDRESS    `[IP Address of the machine]` : `localhost`
-- SERVER_PORT       `[Port of the machine]` : `8000`
+- USER_API_PORT      `[Port of the user api]` : `8000`
+- PRODUCT_API_PORT   `[Port of the product api]` : `8001`
 - DB_USER           `[Database username]` : `postgres`
 - DB_PASSWD         `[Database password]`: `potgres`
 - DB_ADDR           `[IP address of the database]` : `localhost`
@@ -116,7 +117,8 @@ Change environment variables in Makefile: Set values in Makefile stored in proje
 ├── config                          <-- Database initialization on docker compose.
 ├── db/migrations                   <-- Postgres DB migrations scripts for golang-migrate.
 ├── users-api                       <-- Users API microservice.
-├── auth-api                        <-- Auth API microservice.
+├── product-api                     <-- Auth API microservice.
+├── lib                             <-- Common setup, configs used across all services.
 ├── compose.yaml                    <-- Docker services setup(databases)
 ├── golangci.yml                    <-- Config for golangci-lint. 
 ├── Makefile                        <-- Builds the whole app with exporting environment variables.

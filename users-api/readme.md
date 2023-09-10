@@ -20,13 +20,8 @@
 ├── cmd
 │   └── app
 │       └── app.go                        <-- Define routes, logger setup, wire up handler, start users-api server
-│       ├── app_helpers.go                <-- Sanity check.
 │       └── handlers.go                   <-- User handlers for app endpoints
 │       └── handlers_test.go              <-- User handlers tests only for 200 OK.
-├── database
-│   └── postgres_db_conn.go               <-- Postgresql DB Connection config.
-│   └── postgres_db_conn_test.go          <-- Connection string making test.
-│   └── generate_users.go                 <-- Generate n(1000) users in database.
 ├── internal
 │   └── domain
 │       └── user.go                       <-- User struct based on database schema.

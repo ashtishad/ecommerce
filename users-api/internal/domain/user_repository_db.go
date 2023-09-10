@@ -136,7 +136,7 @@ func (d *UserRepositoryDB) checkUserExistWithEmail(email string) lib.APIError {
 	}
 	if exists == true {
 		d.l.Error(ErrUserAlreadyExistEmail, "email", email)
-		return lib.NewBadRequestError(ErrUserAlreadyExistEmail)
+		return lib.NewDBFieldConflictError(ErrUserAlreadyExistEmail)
 	}
 	return nil
 }
