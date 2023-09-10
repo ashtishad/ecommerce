@@ -108,3 +108,15 @@ func NewInternalServerError(message string, err error) APIError {
 	}
 	return result
 }
+
+// NewDBFieldConflictError creates a new APIError for duplicate fields
+// returns http.StatusConflict 409
+// Example usage:
+//
+//	err := NewDBFieldConflictError("category name already exists")
+func NewDBFieldConflictError(message string, inputField string, dbField string) APIError {
+	return apiError{
+		Message: fmt.Sprintf(message+" input: %s dbfield: %s", inputField, dbField),
+		Code:    http.StatusConflict,
+	}
+}
