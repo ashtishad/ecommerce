@@ -4,11 +4,9 @@ import (
 	"database/sql"
 	"errors"
 	"github.com/ashtishad/ecommerce/lib"
-	"github.com/ashtishad/ecommerce/users-api/internal/domain"
-	"github.com/ashtishad/ecommerce/users-api/internal/service"
+	"github.com/ashtishad/ecommerce/product-api/internal/domain"
+	"github.com/ashtishad/ecommerce/product-api/internal/service"
 	"github.com/gin-gonic/gin"
-	_ "github.com/golang-migrate/migrate/v4/database/postgres"
-	_ "github.com/golang-migrate/migrate/v4/source/file"
 	"log/slog"
 	"net/http"
 )
@@ -18,12 +16,14 @@ func Start(srv *http.Server, dbClient *sql.DB, l *slog.Logger) {
 	var r = gin.New()
 	srv.Handler = r
 
-	// wire up the handler
-	userRepositoryDB := domain.NewUserRepositoryDB(dbClient, l)
-	uh := UserHandlers{service.NewUserService(userRepositoryDB), l}
-
+	// wire up the handlers
+	categoryRepoDB := domain.NewCategoryRepoDB(dbClient, l)
+	ch := CategoryHandlers{
+		service: service.NewCategoryService(categoryRepoDB),
+		l:       l,
+	}
 	// route url mappings
-	setUsersApiRoutes(r, uh)
+	setProductApiRoutes(r, ch)
 
 	// custom logger middleware
 	r.Use(gin.LoggerWithFormatter(lib.Logger))
@@ -39,11 +39,9 @@ func Start(srv *http.Server, dbClient *sql.DB, l *slog.Logger) {
 	}()
 }
 
-func setUsersApiRoutes(r *gin.Engine, uh UserHandlers) {
-	userRoutes := r.Group("/users")
+func setProductApiRoutes(r *gin.Engine, ch CategoryHandlers) {
+	categoriesRoutes := r.Group("/categories")
 	{
-		userRoutes.POST("", uh.createUserHandler)
-		userRoutes.PUT("/:user_id", uh.updateUserHandler)
-		userRoutes.GET("", uh.GetUsersHandler)
+		categoriesRoutes.POST("", ch.CreateCategory)
 	}
 }
