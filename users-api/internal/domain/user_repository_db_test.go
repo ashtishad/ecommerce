@@ -282,11 +282,13 @@ func TestUpdate(t *testing.T) {
 		updateUser.Email = "new@example.com"
 		rows := mockUserRows(updateUser)
 
+		mock.ExpectBegin()
 		expectQuery(mock, sqlFindUserByUUID).WithArgs(existingUser.UserUUID).WillReturnRows(mockUserRows(existingUser))
 		expectQuery(mock, sqlCheckUserExistsWithEmail).WithArgs(updateUser.Email).WillReturnRows(sqlmock.NewRows([]string{"exists"}).AddRow(false))
 		expectExec(mock, sqlUpdateUser).
 			WithArgs(updateUser.Email, existingUser.PasswordHash, updateUser.FullName, updateUser.Phone, existingUser.SignUpOption, existingUser.UserID).
 			WillReturnResult(sqlmock.NewResult(1, 1))
+		mock.ExpectCommit()
 		expectQuery(mock, sqlFindUserByID).WithArgs(existingUser.UserID).WillReturnRows(rows)
 
 		updatedUser, err := repo.Update(context.Background(), updateUser)
@@ -297,10 +299,13 @@ func TestUpdate(t *testing.T) {
 	t.Run("User does not exist", func(t *testing.T) {
 		nonExistingUser := mockUserObj()
 
+		mock.ExpectBegin()
 		expectQuery(mock, sqlFindUserByUUID).WithArgs(nonExistingUser.UserUUID).WillReturnError(sql.ErrNoRows)
+		mock.ExpectRollback()
 
 		_, err := repo.Update(context.Background(), nonExistingUser)
 		require.Error(t, err)
+		require.Equal(t, 404, err.StatusCode())
 	})
 
 	t.Run("Email already exists", func(t *testing.T) {
@@ -308,8 +313,10 @@ func TestUpdate(t *testing.T) {
 		updateUser := existingUser
 		updateUser.Email = "new@example.com"
 
+		mock.ExpectBegin()
 		expectQuery(mock, sqlFindUserByUUID).WithArgs(existingUser.UserUUID).WillReturnRows(mockUserRows(existingUser))
 		expectQuery(mock, sqlCheckUserExistsWithEmail).WithArgs(updateUser.Email).WillReturnRows(sqlmock.NewRows([]string{"exists"}).AddRow(true))
+		mock.ExpectRollback()
 
 		_, err := repo.Update(context.Background(), updateUser)
 		require.Error(t, err)

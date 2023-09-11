@@ -59,23 +59,38 @@ func (d *UserRepositoryDB) Create(ctx context.Context, u User, salt string) (*Us
 // Update is responsible for updating a user from fields provided in domain.UpdateUserRequestDTO
 // return internal server error if some error occurs in database side.
 func (d *UserRepositoryDB) Update(ctx context.Context, user User) (*User, lib.APIError) {
+	tx, err := d.db.BeginTx(ctx, &sql.TxOptions{Isolation: sql.LevelSerializable})
+	if err != nil {
+		d.l.Error(lib.ErrTxBegin, "err", err)
+		return nil, lib.NewInternalServerError(lib.UnexpectedDatabaseErr, err)
+	}
+
+	defer func() {
+		if err != nil {
+			d.l.Error("unable to update user", "err", err.Error())
+			if rbErr := tx.Rollback(); rbErr != nil {
+				d.l.Warn("unable to rollback", "rollbackErr", rbErr)
+			}
+			return
+		}
+	}()
+
 	existingUser, apiErr := d.findUserByUUID(ctx, user.UserUUID)
 	if apiErr != nil {
 		return nil, apiErr
 	}
 
-	// if a user wants to update the email, check user already exists with
-	// the updated email or not
 	if existingUser.Email != user.Email {
-		apiErr := d.checkUserExistWithEmail(ctx, user.Email)
-		if apiErr != nil {
+		if apiErr = d.checkUserExistWithEmail(ctx, user.Email); apiErr != nil {
 			return nil, apiErr
 		}
 	}
 
-	_, err := d.db.ExecContext(ctx, sqlUpdateUser, user.Email, existingUser.PasswordHash, user.FullName, user.Phone, existingUser.SignUpOption, existingUser.UserID)
-	if err != nil {
-		d.l.Error(ErrUpdateUser, "err", err.Error())
+	if _, err = tx.ExecContext(ctx, sqlUpdateUser, user.Email, existingUser.PasswordHash, user.FullName, user.Phone, existingUser.SignUpOption, existingUser.UserID); err != nil {
+		return nil, lib.NewInternalServerError(lib.UnexpectedDatabaseErr, err)
+	}
+
+	if err = tx.Commit(); err != nil {
 		return nil, lib.NewInternalServerError(lib.UnexpectedDatabaseErr, err)
 	}
 
