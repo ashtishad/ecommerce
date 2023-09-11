@@ -18,12 +18,13 @@ func NewUserRepositoryDB(dbClient *sql.DB, l *slog.Logger) *UserRepositoryDB {
 	return &UserRepositoryDB{dbClient, l}
 }
 
-func (d *UserRepositoryDB) Create(ctx context.Context, user User, salt string) (*User, lib.APIError) {
-	if apiErr := d.checkUserExistWithEmail(ctx, user.Email); apiErr != nil {
+func (d *UserRepositoryDB) Create(ctx context.Context, u User, salt string) (*User, lib.APIError) {
+	// email is a unique constraint in db, so read query is outside transactions, improves performance
+	if apiErr := d.checkUserExistWithEmail(ctx, u.Email); apiErr != nil {
 		return nil, apiErr
 	}
 
-	tx, err := d.db.Begin()
+	tx, err := d.db.BeginTx(ctx, &sql.TxOptions{Isolation: sql.LevelReadCommitted})
 	if err != nil {
 		d.l.Error(lib.ErrTxBegin, "err", err)
 		return nil, lib.NewInternalServerError(lib.UnexpectedDatabaseErr, err)
@@ -31,33 +32,28 @@ func (d *UserRepositoryDB) Create(ctx context.Context, user User, salt string) (
 
 	defer func() {
 		if err != nil {
-			rollBackErr := tx.Rollback()
-			if rollBackErr != nil {
-				d.l.Error(lib.ErrTxRollback, "err", rollBackErr.Error())
+			d.l.Error("unable to create user", "err", err.Error())
+			if rbErr := tx.Rollback(); rbErr != nil {
+				d.l.Warn("unable to rollback", "rollbackErr", rbErr)
 				return
 			}
 		}
 	}()
 
-	var userID int
-	err = tx.QueryRowContext(ctx, sqlInsertUserWithReturnID, user.Email, user.PasswordHash, user.FullName, user.Phone, user.SignUpOption, user.Timezone).Scan(&userID)
-	if err != nil || userID == 0 {
-		d.l.Error(ErrCreatingUser, "err", err.Error())
+	var id int
+	if err = tx.QueryRowContext(ctx, sqlInsertUserWithReturnID, u.Email, u.PasswordHash, u.FullName, u.Phone, u.SignUpOption, u.Timezone).Scan(&id); err != nil {
 		return nil, lib.NewInternalServerError(lib.UnexpectedDatabaseErr, err)
 	}
 
-	_, err = tx.ExecContext(ctx, sqlInsertUserIDSalt, userID, salt)
-	if err != nil {
-		d.l.Error(ErrInsertUserIDSalt, "err", err.Error())
+	if _, err = tx.ExecContext(ctx, sqlInsertUserIDSalt, id, salt); err != nil {
 		return nil, lib.NewInternalServerError(lib.UnexpectedDatabaseErr, err)
 	}
 
 	if err = tx.Commit(); err != nil {
-		d.l.Error(lib.ErrTxCommit, "err", err.Error())
 		return nil, lib.NewInternalServerError(lib.UnexpectedDatabaseErr, err)
 	}
 
-	return d.findUserByID(ctx, userID)
+	return d.findUserByID(ctx, id)
 }
 
 // Update is responsible for updating a user from fields provided in domain.UpdateUserRequestDTO

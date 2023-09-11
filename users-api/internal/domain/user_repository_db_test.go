@@ -222,7 +222,7 @@ func TestCreate(t *testing.T) {
 		expectQuery(mock, sqlInsertUserWithReturnID).
 			WithArgs(mockUser.Email, mockUser.PasswordHash, mockUser.FullName, mockUser.Phone, mockUser.SignUpOption, mockUser.Timezone).
 			WillReturnRows(sqlmock.NewRows([]string{"user_id"}).AddRow(1))
-		expectExec(mock, sqlInsertUserIDSalt).WithArgs(mockUser.UserID, salt).WillReturnResult(sqlmock.NewResult(1, 1))
+		expectExec(mock, sqlInsertUserIDSalt).WithArgs(1, salt).WillReturnResult(sqlmock.NewResult(1, 1))
 		mock.ExpectCommit()
 		expectQuery(mock, sqlFindUserByID).WithArgs(1).WillReturnRows(rows)
 
@@ -241,9 +241,7 @@ func TestCreate(t *testing.T) {
 	t.Run("User already exists", func(t *testing.T) {
 		mockUser := mockUserObj()
 		salt := "some_salt"
-
 		expectQuery(mock, sqlCheckUserExistsWithEmail).WithArgs(mockUser.Email).WillReturnRows(sqlmock.NewRows([]string{"exists"}).AddRow(true))
-
 		_, err = repo.Create(context.Background(), mockUser, salt)
 		require.Error(t, err)
 	})
