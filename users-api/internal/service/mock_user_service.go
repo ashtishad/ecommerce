@@ -1,6 +1,7 @@
 package service
 
 import (
+	"context"
 	"errors"
 	"github.com/ashtishad/ecommerce/lib"
 	"github.com/ashtishad/ecommerce/users-api/internal/domain"
@@ -11,7 +12,7 @@ type MockUserService struct {
 	mock.Mock
 }
 
-func (m *MockUserService) NewUser(request domain.NewUserRequestDTO) (*domain.UserResponseDTO, lib.APIError) {
+func (m *MockUserService) NewUser(ctx context.Context, request domain.NewUserRequestDTO) (*domain.UserResponseDTO, lib.APIError) {
 	args := m.Called(request)
 	if args.Get(0) == nil && args.Get(1) == nil {
 		return nil, nil
@@ -30,7 +31,7 @@ func (m *MockUserService) NewUser(request domain.NewUserRequestDTO) (*domain.Use
 	return nil, apiError
 }
 
-func (m *MockUserService) UpdateUser(request domain.UpdateUserRequestDTO) (*domain.UserResponseDTO, lib.APIError) {
+func (m *MockUserService) UpdateUser(ctx context.Context, request domain.UpdateUserRequestDTO) (*domain.UserResponseDTO, lib.APIError) {
 	args := m.Called(request)
 	if args.Get(0) == nil && args.Get(1) == nil {
 		return nil, nil
@@ -49,7 +50,7 @@ func (m *MockUserService) UpdateUser(request domain.UpdateUserRequestDTO) (*doma
 	return nil, apiError
 }
 
-func (m *MockUserService) GetAllUsers(request domain.FindAllUsersOptionsDTO) ([]domain.UserResponseDTO, *domain.NextPageInfo, lib.APIError) {
+func (m *MockUserService) GetAllUsers(ctx context.Context, request domain.FindAllUsersOptionsDTO) ([]domain.UserResponseDTO, *domain.NextPageInfo, lib.APIError) {
 	args := m.Called(request)
 	if args.Get(0) == nil && args.Get(1) == nil && args.Get(2) == nil {
 		return nil, nil, nil

@@ -2,6 +2,7 @@ package app
 
 import (
 	"context"
+	"github.com/ashtishad/ecommerce/lib"
 	"github.com/ashtishad/ecommerce/product-api/internal/domain"
 	"github.com/ashtishad/ecommerce/product-api/internal/service"
 	"github.com/gin-gonic/gin"
@@ -22,7 +23,7 @@ func (ch *CategoryHandlers) CreateCategory(c *gin.Context) {
 		return
 	}
 
-	timeoutCtx, cancel := context.WithTimeout(c.Request.Context(), CreateCategoryTimeout)
+	timeoutCtx, cancel := context.WithTimeout(c.Request.Context(), lib.TimeoutCreateCategory)
 	defer cancel()
 
 	createdCategory, apiErr := ch.service.NewCategory(timeoutCtx, newCategoryReqDTO)

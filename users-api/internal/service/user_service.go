@@ -1,6 +1,7 @@
 package service
 
 import (
+	"context"
 	"github.com/ashtishad/ecommerce/lib"
 	"github.com/ashtishad/ecommerce/users-api/internal/domain"
 	"github.com/ashtishad/ecommerce/users-api/pkg/constants"
@@ -9,9 +10,9 @@ import (
 )
 
 type UserService interface {
-	NewUser(request domain.NewUserRequestDTO) (*domain.UserResponseDTO, lib.APIError)
-	UpdateUser(request domain.UpdateUserRequestDTO) (*domain.UserResponseDTO, lib.APIError)
-	GetAllUsers(request domain.FindAllUsersOptionsDTO) ([]domain.UserResponseDTO, *domain.NextPageInfo, lib.APIError)
+	NewUser(ctx context.Context, req domain.NewUserRequestDTO) (*domain.UserResponseDTO, lib.APIError)
+	UpdateUser(ctx context.Context, req domain.UpdateUserRequestDTO) (*domain.UserResponseDTO, lib.APIError)
+	GetAllUsers(ctx context.Context, req domain.FindAllUsersOptionsDTO) ([]domain.UserResponseDTO, *domain.NextPageInfo, lib.APIError)
 }
 
 type DefaultUserService struct {
@@ -25,8 +26,8 @@ func NewUserService(repository domain.UserRepository) *DefaultUserService {
 // NewUser first generate a salt, hashedPassword, then creates a domain model from request dto,
 // then Calls the repository to save(create/update) the new user, get the user model if everything okay, otherwise returns error
 // Finally returns UserResponseDTO.
-func (service *DefaultUserService) NewUser(request domain.NewUserRequestDTO) (*domain.UserResponseDTO, lib.APIError) {
-	if err := validateCreateUserInput(request); err != nil {
+func (service *DefaultUserService) NewUser(ctx context.Context, req domain.NewUserRequestDTO) (*domain.UserResponseDTO, lib.APIError) {
+	if err := validateCreateUserInput(req); err != nil {
 		return nil, lib.NewBadRequestError("invalid create user input").Wrap(err)
 	}
 
@@ -35,19 +36,19 @@ func (service *DefaultUserService) NewUser(request domain.NewUserRequestDTO) (*d
 		return nil, lib.NewInternalServerError("unable to generate hash", err)
 	}
 
-	hashedPassword := hashpassword.HashPassword(request.Password, salt)
+	hashedPassword := hashpassword.HashPassword(req.Password, salt)
 
 	user := domain.User{
-		Email:        strings.ToLower(request.Email),
+		Email:        strings.ToLower(req.Email),
 		PasswordHash: hashedPassword,
-		FullName:     request.FullName,
-		Phone:        request.Phone,
-		SignUpOption: request.SignUpOption,
+		FullName:     req.FullName,
+		Phone:        req.Phone,
+		SignUpOption: req.SignUpOption,
 		Status:       constants.UserStatusActive,
-		Timezone:     strings.ToLower(request.Timezone),
+		Timezone:     strings.ToLower(req.Timezone),
 	}
 
-	createdUser, apiErr := service.repo.Create(user, salt)
+	createdUser, apiErr := service.repo.Create(ctx, user, salt)
 	if apiErr != nil {
 		return nil, apiErr
 	}
@@ -57,21 +58,21 @@ func (service *DefaultUserService) NewUser(request domain.NewUserRequestDTO) (*d
 	return userResponseDTO, nil
 }
 
-func (service *DefaultUserService) UpdateUser(request domain.UpdateUserRequestDTO) (*domain.UserResponseDTO, lib.APIError) {
-	if err := validateUpdateUserInput(request); err != nil {
+func (service *DefaultUserService) UpdateUser(ctx context.Context, req domain.UpdateUserRequestDTO) (*domain.UserResponseDTO, lib.APIError) {
+	if err := validateUpdateUserInput(req); err != nil {
 		return nil, lib.NewBadRequestError("invalid update user input").Wrap(err)
 	}
 
 	user := domain.User{
-		UserUUID: request.UserUUID,
-		Email:    strings.ToLower(request.Email),
-		FullName: request.FullName,
-		Phone:    request.Phone,
+		UserUUID: req.UserUUID,
+		Email:    strings.ToLower(req.Email),
+		FullName: req.FullName,
+		Phone:    req.Phone,
 		Status:   constants.UserStatusActive,
-		Timezone: strings.ToLower(request.Timezone),
+		Timezone: strings.ToLower(req.Timezone),
 	}
 
-	updatedUser, err := service.repo.Update(user)
+	updatedUser, err := service.repo.Update(ctx, user)
 	if err != nil {
 		return nil, err
 	}
@@ -81,13 +82,13 @@ func (service *DefaultUserService) UpdateUser(request domain.UpdateUserRequestDT
 	return userResponseDTO, nil
 }
 
-func (service *DefaultUserService) GetAllUsers(request domain.FindAllUsersOptionsDTO) ([]domain.UserResponseDTO, *domain.NextPageInfo, lib.APIError) {
+func (service *DefaultUserService) GetAllUsers(ctx context.Context, request domain.FindAllUsersOptionsDTO) ([]domain.UserResponseDTO, *domain.NextPageInfo, lib.APIError) {
 	opts, err := validateFindAllUsersOpts(request)
 	if err != nil {
 		return nil, nil, lib.NewBadRequestError("invalid query params").Wrap(err)
 	}
 
-	users, nextPageInfo, apiErr := service.repo.FindAll(*opts)
+	users, nextPageInfo, apiErr := service.repo.FindAll(ctx, *opts)
 	if apiErr != nil {
 		return nil, nil, apiErr
 	}
