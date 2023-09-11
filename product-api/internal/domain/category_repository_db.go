@@ -19,15 +19,32 @@ func NewCategoryRepoDB(db *sql.DB, l *slog.Logger) *CategoryRepoDB {
 }
 
 func (d *CategoryRepoDB) CreateCategory(ctx context.Context, category Category) (*Category, lib.APIError) {
+	tx, err := d.db.BeginTx(ctx, &sql.TxOptions{Isolation: sql.LevelSerializable})
+	if err != nil {
+		d.l.Error(lib.ErrTxBegin, "err", err)
+		return nil, lib.NewInternalServerError(lib.UnexpectedDatabaseErr, err)
+	}
+
+	defer func() {
+		if err != nil {
+			d.l.Error("unable to create category", "err", err.Error())
+			if rbErr := tx.Rollback(); rbErr != nil {
+				d.l.Warn("unable to rollback", "rollbackErr", rbErr)
+			}
+			return
+		}
+	}()
+
 	if apiErr := d.checkCategoryNameExists(ctx, category.Name); apiErr != nil {
 		return nil, apiErr
 	}
 
-	err := d.db.QueryRowContext(ctx,
-		sqlInsertCategory, category.Name, category.Description).Scan(&category.CategoryID)
+	if err = tx.QueryRowContext(ctx,
+		sqlInsertCategory, category.Name, category.Description).Scan(&category.CategoryID); err != nil {
+		return nil, lib.NewInternalServerError(lib.UnexpectedDatabaseErr, err)
+	}
 
-	if err != nil {
-		d.l.Error("error inserting new category:", "err", err.Error())
+	if err = tx.Commit(); err != nil {
 		return nil, lib.NewInternalServerError(lib.UnexpectedDatabaseErr, err)
 	}
 
