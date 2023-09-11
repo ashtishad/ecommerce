@@ -1,6 +1,7 @@
 package domain
 
 import (
+	"context"
 	"database/sql"
 	"errors"
 	"github.com/DATA-DOG/go-sqlmock"
@@ -66,7 +67,7 @@ func TestCheckUserExistWithEmail(t *testing.T) {
 			WithArgs("existing@email.com").
 			WillReturnRows(sqlmock.NewRows([]string{"exists"}).AddRow(true))
 
-		apiErr := repo.checkUserExistWithEmail("existing@email.com")
+		apiErr := repo.checkUserExistWithEmail(context.Background(), "existing@email.com")
 		require.NotNil(t, apiErr)
 		require.Equal(t, "user already exists with this email", apiErr.AsMessage())
 	})
@@ -76,7 +77,7 @@ func TestCheckUserExistWithEmail(t *testing.T) {
 			WithArgs("new@email.com").
 			WillReturnRows(sqlmock.NewRows([]string{"exists"}).AddRow(false))
 
-		apiErr := repo.checkUserExistWithEmail("new@email.com")
+		apiErr := repo.checkUserExistWithEmail(context.Background(), "new@email.com")
 		require.Nil(t, apiErr)
 	})
 
@@ -85,7 +86,7 @@ func TestCheckUserExistWithEmail(t *testing.T) {
 			WithArgs("error@email.com").
 			WillReturnError(errors.New("some internal error"))
 
-		apiErr := repo.checkUserExistWithEmail("error@email.com")
+		apiErr := repo.checkUserExistWithEmail(context.Background(), "error@email.com")
 		require.NotNil(t, apiErr)
 		require.Equal(t, lib.UnexpectedDatabaseErr, apiErr.AsMessage())
 	})
@@ -112,7 +113,7 @@ func TestFindUserByID(t *testing.T) {
 			WithArgs(1).
 			WillReturnRows(rows)
 
-		user, apiErr := repo.findUserByID(1)
+		user, apiErr := repo.findUserByID(context.Background(), 1)
 		require.Nil(t, apiErr)
 		require.Equal(t, mockUser, *user)
 	})
@@ -122,7 +123,7 @@ func TestFindUserByID(t *testing.T) {
 			WithArgs(2).
 			WillReturnError(sql.ErrNoRows)
 
-		user, apiErr := repo.findUserByID(2)
+		user, apiErr := repo.findUserByID(context.Background(), 2)
 		require.NotNil(t, apiErr)
 		require.Equal(t, lib.UnexpectedDatabaseErr, apiErr.AsMessage())
 		require.Equal(t, http.StatusNotFound, apiErr.StatusCode())
@@ -134,7 +135,7 @@ func TestFindUserByID(t *testing.T) {
 			WithArgs(3).
 			WillReturnError(errors.New("some internal error"))
 
-		user, apiErr := repo.findUserByID(3)
+		user, apiErr := repo.findUserByID(context.Background(), 3)
 		require.NotNil(t, apiErr)
 		require.Equal(t, lib.UnexpectedDatabaseErr, apiErr.AsMessage())
 		require.Equal(t, http.StatusInternalServerError, apiErr.StatusCode())
@@ -163,7 +164,7 @@ func TestFindUserByUUID(t *testing.T) {
 			WithArgs(mockUser.UserUUID).
 			WillReturnRows(rows)
 
-		user, apiErr := repo.findUserByUUID(mockUser.UserUUID)
+		user, apiErr := repo.findUserByUUID(context.Background(), mockUser.UserUUID)
 		require.Nil(t, apiErr)
 		require.Equal(t, mockUser, *user)
 	})
@@ -174,7 +175,7 @@ func TestFindUserByUUID(t *testing.T) {
 			WithArgs(UserUUID).
 			WillReturnError(sql.ErrNoRows)
 
-		user, apiErr := repo.findUserByUUID(UserUUID)
+		user, apiErr := repo.findUserByUUID(context.Background(), UserUUID)
 		require.NotNil(t, apiErr)
 		require.Equal(t, lib.UnexpectedDatabaseErr, apiErr.AsMessage())
 		require.Equal(t, http.StatusNotFound, apiErr.StatusCode())
@@ -187,7 +188,7 @@ func TestFindUserByUUID(t *testing.T) {
 			WithArgs(UserUUID).
 			WillReturnError(errors.New("error scanning user data by uuid"))
 
-		user, apiErr := repo.findUserByUUID(UserUUID)
+		user, apiErr := repo.findUserByUUID(context.Background(), UserUUID)
 		require.NotNil(t, apiErr)
 		require.Equal(t, lib.UnexpectedDatabaseErr, apiErr.AsMessage())
 		require.Equal(t, http.StatusInternalServerError, apiErr.StatusCode())
@@ -221,11 +222,11 @@ func TestCreate(t *testing.T) {
 		expectQuery(mock, sqlInsertUserWithReturnID).
 			WithArgs(mockUser.Email, mockUser.PasswordHash, mockUser.FullName, mockUser.Phone, mockUser.SignUpOption, mockUser.Timezone).
 			WillReturnRows(sqlmock.NewRows([]string{"user_id"}).AddRow(1))
-		expectExec(mock, sqlInsertUserIDSalt).WithArgs(mockUser.UserID, salt).WillReturnResult(sqlmock.NewResult(1, 1))
+		expectExec(mock, sqlInsertUserIDSalt).WithArgs(1, salt).WillReturnResult(sqlmock.NewResult(1, 1))
 		mock.ExpectCommit()
 		expectQuery(mock, sqlFindUserByID).WithArgs(1).WillReturnRows(rows)
 
-		createdUser, err := repo.Create(mockUser, salt)
+		createdUser, err := repo.Create(context.Background(), mockUser, salt)
 		require.NoError(t, err)
 		require.NotNil(t, createdUser)
 
@@ -240,10 +241,8 @@ func TestCreate(t *testing.T) {
 	t.Run("User already exists", func(t *testing.T) {
 		mockUser := mockUserObj()
 		salt := "some_salt"
-
 		expectQuery(mock, sqlCheckUserExistsWithEmail).WithArgs(mockUser.Email).WillReturnRows(sqlmock.NewRows([]string{"exists"}).AddRow(true))
-
-		_, err = repo.Create(mockUser, salt)
+		_, err = repo.Create(context.Background(), mockUser, salt)
 		require.Error(t, err)
 	})
 
@@ -256,7 +255,7 @@ func TestCreate(t *testing.T) {
 		expectQuery(mock, sqlInsertUserWithReturnID).WillReturnError(errors.New("db error"))
 		mock.ExpectRollback()
 
-		_, err = repo.Create(mockUser, salt)
+		_, err = repo.Create(context.Background(), mockUser, salt)
 		require.Error(t, err)
 	})
 }
@@ -283,14 +282,16 @@ func TestUpdate(t *testing.T) {
 		updateUser.Email = "new@example.com"
 		rows := mockUserRows(updateUser)
 
+		mock.ExpectBegin()
 		expectQuery(mock, sqlFindUserByUUID).WithArgs(existingUser.UserUUID).WillReturnRows(mockUserRows(existingUser))
 		expectQuery(mock, sqlCheckUserExistsWithEmail).WithArgs(updateUser.Email).WillReturnRows(sqlmock.NewRows([]string{"exists"}).AddRow(false))
 		expectExec(mock, sqlUpdateUser).
 			WithArgs(updateUser.Email, existingUser.PasswordHash, updateUser.FullName, updateUser.Phone, existingUser.SignUpOption, existingUser.UserID).
 			WillReturnResult(sqlmock.NewResult(1, 1))
+		mock.ExpectCommit()
 		expectQuery(mock, sqlFindUserByID).WithArgs(existingUser.UserID).WillReturnRows(rows)
 
-		updatedUser, err := repo.Update(updateUser)
+		updatedUser, err := repo.Update(context.Background(), updateUser)
 		require.NoError(t, err)
 		require.Equal(t, updateUser.Email, updatedUser.Email)
 	})
@@ -298,10 +299,13 @@ func TestUpdate(t *testing.T) {
 	t.Run("User does not exist", func(t *testing.T) {
 		nonExistingUser := mockUserObj()
 
+		mock.ExpectBegin()
 		expectQuery(mock, sqlFindUserByUUID).WithArgs(nonExistingUser.UserUUID).WillReturnError(sql.ErrNoRows)
+		mock.ExpectRollback()
 
-		_, err := repo.Update(nonExistingUser)
+		_, err := repo.Update(context.Background(), nonExistingUser)
 		require.Error(t, err)
+		require.Equal(t, 404, err.StatusCode())
 	})
 
 	t.Run("Email already exists", func(t *testing.T) {
@@ -309,10 +313,12 @@ func TestUpdate(t *testing.T) {
 		updateUser := existingUser
 		updateUser.Email = "new@example.com"
 
+		mock.ExpectBegin()
 		expectQuery(mock, sqlFindUserByUUID).WithArgs(existingUser.UserUUID).WillReturnRows(mockUserRows(existingUser))
 		expectQuery(mock, sqlCheckUserExistsWithEmail).WithArgs(updateUser.Email).WillReturnRows(sqlmock.NewRows([]string{"exists"}).AddRow(true))
+		mock.ExpectRollback()
 
-		_, err := repo.Update(updateUser)
+		_, err := repo.Update(context.Background(), updateUser)
 		require.Error(t, err)
 	})
 }
@@ -348,7 +354,7 @@ func TestFindAll(t *testing.T) {
 			PageSize: 1,
 		}
 
-		users, pageInfo, err := repo.FindAll(opts)
+		users, pageInfo, err := repo.FindAll(context.Background(), opts)
 
 		require.NoError(t, err)
 		require.Len(t, users, 1)
@@ -371,7 +377,7 @@ func TestFindAll(t *testing.T) {
 			Status:   "active",
 		}
 
-		users, pageInfo, err := repo.FindAll(opts)
+		users, pageInfo, err := repo.FindAll(context.Background(), opts)
 
 		require.NoError(t, err)
 		require.Len(t, users, 1)
@@ -396,7 +402,7 @@ func TestFindAll(t *testing.T) {
 			Timezone:     "UTC",
 		}
 
-		users, pageInfo, err := repo.FindAll(opts)
+		users, pageInfo, err := repo.FindAll(context.Background(), opts)
 
 		require.NoError(t, err)
 		require.Len(t, users, 1)
@@ -415,7 +421,7 @@ func TestFindAll(t *testing.T) {
 			Status:   "inactive",
 		}
 
-		users, pageInfo, err := repo.FindAll(opts)
+		users, pageInfo, err := repo.FindAll(context.Background(), opts)
 
 		require.Error(t, err)
 		require.Nil(t, users)
@@ -430,7 +436,7 @@ func TestFindAll(t *testing.T) {
 			PageSize: 1,
 		}
 
-		users, pageInfo, err := repo.FindAll(opts)
+		users, pageInfo, err := repo.FindAll(context.Background(), opts)
 
 		require.Error(t, err)
 		require.Nil(t, users)
@@ -443,7 +449,7 @@ func TestFindAll(t *testing.T) {
 			PageSize: -1,
 		}
 
-		users, pageInfo, err := repo.FindAll(opts)
+		users, pageInfo, err := repo.FindAll(context.Background(), opts)
 
 		require.Error(t, err)
 		require.Nil(t, users)

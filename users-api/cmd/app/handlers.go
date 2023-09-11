@@ -1,6 +1,8 @@
 package app
 
 import (
+	"context"
+	"github.com/ashtishad/ecommerce/lib"
 	"github.com/ashtishad/ecommerce/users-api/internal/domain"
 	"github.com/ashtishad/ecommerce/users-api/internal/service"
 	"github.com/gin-gonic/gin"
@@ -25,7 +27,10 @@ func (us *UserHandlers) createUserHandler(c *gin.Context) {
 		return
 	}
 
-	userResponse, err := us.service.NewUser(newUserRequest)
+	timeoutCtx, cancel := context.WithTimeout(c.Request.Context(), lib.TimeoutCreateUser)
+	defer cancel()
+
+	userResponse, err := us.service.NewUser(timeoutCtx, newUserRequest)
 	if err != nil {
 		c.JSON(err.StatusCode(), err)
 		return
@@ -47,8 +52,11 @@ func (us *UserHandlers) updateUserHandler(c *gin.Context) {
 		c.JSON(http.StatusBadRequest, gin.H{"error": "bad request"})
 		return
 	}
+
+	timeoutCtx, cancel := context.WithTimeout(c.Request.Context(), lib.TimeoutUpdateUser)
+	defer cancel()
 	updateUserRequest.UserUUID = UserUUID
-	userResponse, err := us.service.UpdateUser(updateUserRequest)
+	userResponse, err := us.service.UpdateUser(timeoutCtx, updateUserRequest)
 	if err != nil {
 		c.JSON(err.StatusCode(), err)
 		return
@@ -66,7 +74,9 @@ func (us *UserHandlers) GetUsersHandler(c *gin.Context) {
 	opts.SignUpOption = c.Query("signUpOption")
 	opts.Timezone = c.Query("timezone")
 
-	users, pageInfo, err := us.service.GetAllUsers(opts)
+	timeoutCtx, cancel := context.WithTimeout(c.Request.Context(), lib.TimeoutGetUsers)
+	defer cancel()
+	users, pageInfo, err := us.service.GetAllUsers(timeoutCtx, opts)
 	if err != nil {
 		c.JSON(err.StatusCode(), err)
 		return
