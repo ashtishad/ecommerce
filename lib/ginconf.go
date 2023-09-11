@@ -2,8 +2,9 @@ package lib
 
 import (
 	"fmt"
-	"github.com/gin-gonic/gin"
 	"net/http"
+
+	"github.com/gin-gonic/gin"
 )
 
 // Logger implements logger util for gin
@@ -26,5 +27,6 @@ func Recover(c *gin.Context, recovered interface{}) {
 	if err, ok := recovered.(string); ok {
 		c.String(http.StatusInternalServerError, fmt.Sprintf("error: %s", err))
 	}
+
 	c.AbortWithStatus(http.StatusInternalServerError)
 }

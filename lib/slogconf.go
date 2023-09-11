@@ -20,8 +20,10 @@ func getSlogConf() *slog.HandlerOptions {
 			if !ok {
 				return a
 			}
+
 			sourceVal.File = filepath.Base(sourceVal.File)
 		}
+
 		return a
 	}
 

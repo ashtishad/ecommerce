@@ -10,9 +10,11 @@ import (
 func GenerateSalt() (string, error) {
 	salt := make([]byte, 16)
 	_, err := rand.Read(salt)
+
 	if err != nil {
 		return "", err
 	}
+
 	return hex.EncodeToString(salt), nil
 }
 

@@ -2,13 +2,14 @@ package main
 
 import (
 	"context"
-	"github.com/ashtishad/ecommerce/lib"
-	productApp "github.com/ashtishad/ecommerce/product-api/cmd/app"
-	usersApp "github.com/ashtishad/ecommerce/users-api/cmd/app"
 	"os"
 	"os/signal"
 	"sync"
 	"time"
+
+	"github.com/ashtishad/ecommerce/lib"
+	productApp "github.com/ashtishad/ecommerce/product-api/cmd/app"
+	usersApp "github.com/ashtishad/ecommerce/users-api/cmd/app"
 )
 
 func main() {
@@ -24,14 +25,18 @@ func main() {
 	// generate.GenerateUsers(dbClient, l, 1000)
 
 	userServer := lib.InitServerConfig("USER_API_PORT")
+
 	wg.Add(1)
+
 	go func() {
 		usersApp.Start(userServer, dbClient, l)
 		wg.Done()
 	}()
 
 	productServer := lib.InitServerConfig("PRODUCT_API_PORT")
+
 	wg.Add(1)
+
 	go func() {
 		productApp.Start(productServer, dbClient, l)
 		wg.Done()
@@ -45,6 +50,7 @@ func main() {
 	defer cancel()
 
 	wg.Add(2)
+
 	go lib.GracefulShutdown(userServer, ctx, &wg, "User")
 	go lib.GracefulShutdown(productServer, ctx, &wg, "Product")
 

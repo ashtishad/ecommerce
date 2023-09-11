@@ -5,14 +5,15 @@ import (
 	"database/sql"
 	"errors"
 	"fmt"
-	"github.com/ashtishad/ecommerce/db/conn"
-	"github.com/golang-migrate/migrate/v4"
 	"log"
 	"log/slog"
 	"net/http"
 	"os"
 	"sync"
 	"time"
+
+	"github.com/ashtishad/ecommerce/db/conn"
+	"github.com/golang-migrate/migrate/v4"
 )
 
 func InitServerConfig(portEnv string) *http.Server {
@@ -29,6 +30,7 @@ func InitSlogger() *slog.Logger {
 	handlerOpts := getSlogConf()
 	l := slog.New(slog.NewTextHandler(os.Stdout, handlerOpts))
 	slog.SetDefault(l)
+
 	return l
 }
 
@@ -46,15 +48,18 @@ func InitDBClient(l *slog.Logger) *sql.DB {
 	if err := m.Up(); err != nil && !errors.Is(err, migrate.ErrNoChange) {
 		l.Error("error applying migration: %v", "err", err.Error())
 	}
+
 	return dbClient
 }
 
 func GracefulShutdown(srv *http.Server, ctx context.Context, wg *sync.WaitGroup, serverName string) {
 	defer wg.Done()
 	log.Printf("Shutting down %s server...\n", serverName)
+
 	if err := srv.Shutdown(ctx); err != nil {
 		log.Printf("Could not gracefully shutdown the %s server: %v\n", serverName, err)
 	}
+
 	log.Printf("%s server gracefully stopped\n", serverName)
 }
 

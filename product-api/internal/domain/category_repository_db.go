@@ -5,8 +5,9 @@ import (
 	"database/sql"
 	"errors"
 	"fmt"
-	"github.com/ashtishad/ecommerce/lib"
 	"log/slog"
+
+	"github.com/ashtishad/ecommerce/lib"
 )
 
 type CategoryRepoDB struct {
@@ -28,9 +29,11 @@ func (d *CategoryRepoDB) CreateCategory(ctx context.Context, category Category) 
 	defer func() {
 		if err != nil {
 			d.l.Error("unable to create category", "err", err.Error())
+
 			if rbErr := tx.Rollback(); rbErr != nil {
 				d.l.Warn("unable to rollback", "rollbackErr", rbErr)
 			}
+
 			return
 		}
 	}()
@@ -88,7 +91,9 @@ func (d *CategoryRepoDB) findCategoryByID(ctx context.Context, categoryID int) (
 			d.l.Error("category not found", "err", err.Error())
 			return nil, lib.NewNotFoundError(lib.UnexpectedDatabaseErr)
 		}
+
 		d.l.Error(lib.ErrScanningRows, "err", err.Error())
+
 		return nil, lib.NewInternalServerError(lib.UnexpectedDatabaseErr, err)
 	}
 

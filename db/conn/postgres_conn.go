@@ -3,12 +3,13 @@ package conn
 import (
 	"database/sql"
 	"fmt"
-	_ "github.com/lib/pq"
 	"log/slog"
 	"net/url"
 	"os"
 	"strconv"
 	"time"
+
+	_ "github.com/lib/pq"
 )
 
 // GetDSNString constructs a PostgreSQL Data Source Name (DSN) string using environment variables.
@@ -22,6 +23,7 @@ func GetDSNString(l *slog.Logger) string {
 		l.Error("error converting port string to int", "err", err.Error())
 		os.Exit(1)
 	}
+
 	dsn := url.URL{
 		Scheme: "postgres",
 		User:   url.UserPassword(os.Getenv("DB_USER"), os.Getenv("DB_PASSWD")),
@@ -40,6 +42,7 @@ func GetDSNString(l *slog.Logger) string {
 func GetDbClient(l *slog.Logger) *sql.DB {
 	dsn := GetDSNString(l)
 	db, err := sql.Open("postgres", dsn)
+
 	if err != nil {
 		l.Error("error connecting to the database", "err", err.Error())
 		os.Exit(1)
@@ -49,6 +52,7 @@ func GetDbClient(l *slog.Logger) *sql.DB {
 		l.Error("error pinging the database", "err", err.Error())
 		os.Exit(1)
 	}
+
 	l.Info("successfully connected to database", "dsn", dsn)
 
 	db.SetConnMaxLifetime(time.Minute * 3)

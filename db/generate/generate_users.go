@@ -2,11 +2,12 @@ package generate
 
 import (
 	"database/sql"
-	"github.com/ashtishad/ecommerce/users-api/pkg/constants"
-	"github.com/ashtishad/ecommerce/users-api/pkg/hashpassword"
 	"log/slog"
 	"math/rand"
 	"time"
+
+	"github.com/ashtishad/ecommerce/users-api/pkg/constants"
+	"github.com/ashtishad/ecommerce/users-api/pkg/hashpassword"
 
 	"github.com/brianvoe/gofakeit/v6"
 )
@@ -45,6 +46,7 @@ func GenerateUsers(db *sql.DB, l *slog.Logger, n int) {
 			l.Warn("failed to generate salt", "err", err.Error())
 			return
 		}
+
 		hashedPassword := hashpassword.HashPassword(password, salt)
 
 		signUpOption := getRandomSignUpOption()
@@ -54,6 +56,7 @@ func GenerateUsers(db *sql.DB, l *slog.Logger, n int) {
 		var userID int
 		err = tx.QueryRow(`INSERT INTO users (email, password_hash, full_name, phone, sign_up_option, status, timezone) VALUES ($1, $2, $3, $4, $5, $6, $7) RETURNING user_id`,
 			email, hashedPassword, fullName, phone, signUpOption, userStatus, timezone).Scan(&userID)
+
 		if err != nil {
 			l.Warn("failed to insert user", "err", err.Error())
 			return
@@ -76,6 +79,7 @@ func GenerateUsers(db *sql.DB, l *slog.Logger, n int) {
 	// update users_user_id_seq
 	query := "SELECT setval('users_user_id_seq', $1)"
 	_, err = db.Exec(query, n)
+
 	if err != nil {
 		l.Warn("failed to update user_id_seq", "err", err.Error())
 		return
@@ -104,5 +108,6 @@ func getRandomSignUpOption() string {
 	if randNumber < 65 {
 		return constants.SignupOptGeneral
 	}
+
 	return constants.SignUpOptGoogle
 }

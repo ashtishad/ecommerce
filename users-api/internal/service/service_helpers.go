@@ -3,10 +3,11 @@ package service
 import (
 	"errors"
 	"fmt"
-	"github.com/ashtishad/ecommerce/users-api/internal/domain"
-	"github.com/ashtishad/ecommerce/users-api/pkg/constants"
 	"regexp"
 	"strconv"
+
+	"github.com/ashtishad/ecommerce/users-api/internal/domain"
+	"github.com/ashtishad/ecommerce/users-api/pkg/constants"
 )
 
 // validateCreateUserInput validates the input for creating a new user.
@@ -89,6 +90,7 @@ func validateFindAllUsersOpts(input domain.FindAllUsersOptionsDTO) (*domain.Find
 		if matched := regexp.MustCompile(constants.TimezoneRegex).MatchString(input.Timezone); !matched {
 			return nil, fmt.Errorf("timezone must be in 'UTC' or 'Asia/Dhaka' format, you entered: %s", input.Timezone)
 		}
+
 		opts.Timezone = input.Timezone
 	}
 
@@ -96,6 +98,7 @@ func validateFindAllUsersOpts(input domain.FindAllUsersOptionsDTO) (*domain.Find
 		if matched := regexp.MustCompile(constants.StatusRegex).MatchString(input.Status); !matched {
 			return nil, fmt.Errorf("user status must be 'active', 'inactive', or 'deleted', you entered: %s", input.Status)
 		}
+
 		opts.Status = input.Status
 	}
 
@@ -103,6 +106,7 @@ func validateFindAllUsersOpts(input domain.FindAllUsersOptionsDTO) (*domain.Find
 		if matched := regexp.MustCompile(constants.SignUpOptionRegex).MatchString(input.SignUpOption); !matched {
 			return nil, fmt.Errorf("signUpOption must be 'general' or 'google', you entered: %s", input.SignUpOption)
 		}
+
 		opts.SignUpOption = input.SignUpOption
 	}
 
@@ -111,6 +115,7 @@ func validateFindAllUsersOpts(input domain.FindAllUsersOptionsDTO) (*domain.Find
 		if err != nil || fromID < 0 {
 			return nil, fmt.Errorf("invalid FromID: must be a non-negative decimal number, you entered: %s", input.FromIDStr)
 		}
+
 		opts.FromID = fromID
 	}
 
@@ -119,6 +124,7 @@ func validateFindAllUsersOpts(input domain.FindAllUsersOptionsDTO) (*domain.Find
 		if err != nil || pageSize < 20 || pageSize > 100 {
 			return nil, fmt.Errorf("invalid PageSize: must be between 20 and 100, you entered: %s", input.PageSizeStr)
 		}
+
 		opts.PageSize = pageSize
 	}
 
