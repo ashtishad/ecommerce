@@ -7,7 +7,6 @@ import (
 	"github.com/gin-gonic/gin"
 	"log/slog"
 	"net/http"
-	"time"
 )
 
 type CategoryHandlers struct {
@@ -23,11 +22,10 @@ func (ch *CategoryHandlers) CreateCategory(c *gin.Context) {
 		return
 	}
 
-	d := time.Now().Add(1 * time.Second)
-	ctx, cancel := context.WithDeadline(context.Background(), d)
+	timeoutCtx, cancel := context.WithTimeout(c.Request.Context(), CreateCategoryTimeout)
 	defer cancel()
 
-	createdCategory, apiErr := ch.service.NewCategory(ctx, newCategoryReqDTO)
+	createdCategory, apiErr := ch.service.NewCategory(timeoutCtx, newCategoryReqDTO)
 	if apiErr != nil {
 		c.JSON(apiErr.StatusCode(), apiErr)
 		return
