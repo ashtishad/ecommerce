@@ -10,6 +10,8 @@ import (
 	"github.com/ashtishad/ecommerce/users-api/internal/domain"
 	"github.com/ashtishad/ecommerce/users-api/internal/service"
 	"github.com/gin-gonic/gin"
+
+	//nolint:revive // reason for disabling
 	_ "github.com/golang-migrate/migrate/v4/database/postgres"
 	_ "github.com/golang-migrate/migrate/v4/source/file"
 )
