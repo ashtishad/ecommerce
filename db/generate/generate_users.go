@@ -12,11 +12,11 @@ import (
 	"github.com/brianvoe/gofakeit/v6"
 )
 
-// GenerateUsers populates n numbers of random users in users and users_salts tables,
+// Users populates n numbers of random users in users and users_salts tables,
 // It accepts a *sql.DB instance to interact with the actual database and
 // an integer n to specify how many records do we want to insert,
 // The function uses a transaction to insert the users, rolling back the transaction and logging an error message if anything goes wrong.
-func GenerateUsers(db *sql.DB, l *slog.Logger, n int) {
+func Users(db *sql.DB, l *slog.Logger, n int) {
 	gofakeit.Seed(0)
 
 	tx, err := db.Begin()

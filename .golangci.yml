@@ -21,7 +21,7 @@ linters:
     - ineffassign
     - staticcheck
     - unused
-##    - revive
+    - revive
 #    - tagliatelle
 #    - lll
 #    - dupl
