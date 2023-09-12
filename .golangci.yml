@@ -41,6 +41,7 @@ linters:
     - forcetypeassert
     - goconst
     - gocritic
+    - tagliatelle
 
 #    # To-DO
 #    - funlen

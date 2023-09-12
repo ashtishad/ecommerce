@@ -49,6 +49,8 @@ func InitDBClient(l *slog.Logger) *sql.DB {
 		l.Error("error applying migration: %v", "err", err.Error())
 	}
 
+	// generate.Users(dbClient, l, 1000)
+
 	return dbClient
 }
 

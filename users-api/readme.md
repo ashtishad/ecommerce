@@ -61,33 +61,44 @@
 ```
 curl --location 'localhost:8000/users' \
 --header 'Content-Type: application/json' \
---data-raw '{"email":"keanu_reeves@gmail.com","full_name":"Keanu Reeves","password":"secrpsswrd","phone":"1234567890","sign_up_option":"general"}'
+--data-raw '{
+    "email": "keanu_reeves@outlook.com",
+    "fullName": "Keanu Reeves",
+    "password": "1234567890",
+    "phone": "12344567897000",
+    "signUpOption": "general",
+    "timezone": "Asia/Dhaka"
+}'
+
 ```
 
 ###### Update a user
 
 ```
-curl --location --request PUT 'localhost:8000/users/{user_id}' \
+
+curl --location --request PUT 'localhost:8000/users/31034fb3-d555-4d9c-bcbb-2719933930a3' \
 --header 'Content-Type: application/json' \
 --data-raw '{
-	"email": "keanu_reeves@gmail.com",
-	"full_name": "John Wick",
-    "phone": "1234567890"
-	
+	"email": "john_wick@outlook.com",
+	"fullName": "John Wick",
+    "phone": "017237475757",
+    "timezone": "asia/mumbai"
 }
+'
 
 ```
 
 ##### Get All Users (Paginated, Optional query params "status", "fromID", "pageSize", "timezone" and "signUpOption"
 
-1. Populate users from users-api/cmd/app.go
-   uncomment this line
+1. Populate users from lib/app_helpers.go -> InitDBClient function
+   uncomment this line. it will generate 1000 users when app builds(so, consider comment out it again after first run)
 
 ```
-// database.GenerateUsers(conn, l, 1000)
+
+// generate.Users(dbClient, l, 1000)
 
 ```
-   it will generate 1000 users when app builds(so, consider comment out it again after first run)
+
 2. Used cursor based pagination strategy with UserID(e.g: 0,1,5000) as cursor.
 3. Timezone region example "UTC", "Asia/Dhaka".
 

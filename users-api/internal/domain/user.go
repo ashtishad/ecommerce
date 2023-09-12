@@ -3,17 +3,17 @@ package domain
 import "time"
 
 type User struct {
-	UserID       int       `json:"user_id"`
-	UserUUID     string    `json:"user_uuid"`
+	UserID       int       `json:"userId"`
+	UserUUID     string    `json:"userUuid"`
 	Email        string    `json:"email"`
-	PasswordHash string    `json:"password_hash"`
-	FullName     string    `json:"full_name"`
+	PasswordHash string    `json:"passwordHash"`
+	FullName     string    `json:"fullName"`
 	Phone        string    `json:"phone"`
-	SignUpOption string    `json:"sign_up_option"` // Enum 'general', 'google'
-	Status       string    `json:"status"`         // Enum 'active', 'inactive', 'deleted'
+	SignUpOption string    `json:"signUpOption"` // Enum 'general', 'google'
+	Status       string    `json:"status"`       // Enum 'active', 'inactive', 'deleted'
 	Timezone     string    `json:"timezone"`
-	CreatedAt    time.Time `json:"created_at"`
-	UpdatedAt    time.Time `json:"updated_at"`
+	CreatedAt    time.Time `json:"createdAt"`
+	UpdatedAt    time.Time `json:"updatedAt"`
 }
 
 // ToUserResponseDTO converts a User to a UserResponseDTO
