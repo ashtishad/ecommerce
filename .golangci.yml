@@ -31,6 +31,7 @@ linters:
     - nilnil
     - tagalign
     - wrapcheck
+    - gosec
 
 #    # To-DO
 #    - funlen

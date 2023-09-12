@@ -9,7 +9,7 @@ import (
 	"strconv"
 	"time"
 
-	//nolint:revive // reason for disabling
+	//nolint:revive
 	_ "github.com/lib/pq"
 )
 

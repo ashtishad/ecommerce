@@ -84,6 +84,7 @@ func Users(db *sql.DB, l *slog.Logger, n int) {
 // getRandomUserStatus generates three possible statuses: "active", "inactive", or "deleted".
 // The status "active" has a 80% chance of being chosen, "inactive" and "deleted" both have a 10% chance.
 func getRandomUserStatus() string {
+	//nolint:gosec // this is test data,security is not necessary here
 	randNumber := rand.Intn(100)
 
 	switch {
@@ -99,6 +100,7 @@ func getRandomUserStatus() string {
 // getRandomSignUpOption generates two possible statuses: "general", "google".
 // general has 65% chance of being chosen and google has 35%.
 func getRandomSignUpOption() string {
+	//nolint:gosec // this is test data,security is not necessary here
 	randNumber := rand.Intn(100)
 	if randNumber < 65 {
 		return constants.SignupOptGeneral
