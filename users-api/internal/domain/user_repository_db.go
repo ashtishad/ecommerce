@@ -101,17 +101,17 @@ func (d *UserRepositoryDB) Update(ctx context.Context, user User) (*User, lib.AP
 	return d.findUserByID(ctx, existingUser.UserID)
 }
 
-// findUserByID takes userId and returns a single user's record
+// findUserByQuery executes the given SQL query to find a user
 // returns error if internal server error happened.
-func (d *UserRepositoryDB) findUserByID(ctx context.Context, userID int) (*User, lib.APIError) {
-	row := d.db.QueryRowContext(ctx, sqlFindUserByID, userID)
+func (d *UserRepositoryDB) findUserByQuery(ctx context.Context, query string, arg interface{}) (*User, lib.APIError) {
+	row := d.db.QueryRowContext(ctx, query, arg)
 
 	var user User
 	err := row.Scan(&user.UserID, &user.UserUUID, &user.Email, &user.PasswordHash, &user.FullName, &user.Phone, &user.SignUpOption, &user.Status, &user.Timezone, &user.CreatedAt, &user.UpdatedAt)
 
 	if err != nil {
 		if errors.Is(err, sql.ErrNoRows) {
-			d.l.Error(ErrUserNotFound, "arg", userID, "err", err.Error())
+			d.l.Error(ErrUserNotFound, "arg", arg, "err", err.Error())
 			return nil, lib.NewNotFoundError(lib.UnexpectedDatabaseErr)
 		}
 
@@ -123,26 +123,16 @@ func (d *UserRepositoryDB) findUserByID(ctx context.Context, userID int) (*User,
 	return &user, nil
 }
 
+// findUserByID takes userId and returns a single user's record
+// returns error if internal server error happened.
+func (d *UserRepositoryDB) findUserByID(ctx context.Context, userID int) (*User, lib.APIError) {
+	return d.findUserByQuery(ctx, sqlFindUserByID, userID)
+}
+
 // findUserByUUID takes userUUID and returns a single user's record
 // returns error if internal server error happened.
 func (d *UserRepositoryDB) findUserByUUID(ctx context.Context, userUUID string) (*User, lib.APIError) {
-	row := d.db.QueryRowContext(ctx, sqlFindUserByUUID, userUUID)
-
-	var user User
-	err := row.Scan(&user.UserID, &user.UserUUID, &user.Email, &user.PasswordHash, &user.FullName, &user.Phone, &user.SignUpOption, &user.Status, &user.Timezone, &user.CreatedAt, &user.UpdatedAt)
-
-	if err != nil {
-		if errors.Is(err, sql.ErrNoRows) {
-			d.l.Error(ErrUserNotFound, "arg", userUUID, "err", err.Error())
-			return nil, lib.NewNotFoundError(lib.UnexpectedDatabaseErr)
-		}
-
-		d.l.Error(ErrScanningData, "err", err.Error())
-
-		return nil, lib.NewInternalServerError(lib.UnexpectedDatabaseErr, err)
-	}
-
-	return &user, nil
+	return d.findUserByQuery(ctx, sqlFindUserByUUID, userUUID)
 }
 
 // checkUserExistWithEmail checks if user exist with this email or not,

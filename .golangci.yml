@@ -26,6 +26,7 @@ linters:
     - stylecheck
     - cyclop
     - prealloc
+    - dupl
 
 #     # JSON camel want got 'categoryUUID' want 'categoryUuid'
 #    - tagliatelle
