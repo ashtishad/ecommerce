@@ -4,9 +4,6 @@ import (
 	"context"
 	"database/sql"
 	"errors"
-	"github.com/DATA-DOG/go-sqlmock"
-	"github.com/ashtishad/ecommerce/lib"
-	"github.com/stretchr/testify/require"
 	"log/slog"
 	"net/http"
 	"os"
@@ -14,6 +11,10 @@ import (
 	"strings"
 	"testing"
 	"time"
+
+	"github.com/DATA-DOG/go-sqlmock"
+	"github.com/ashtishad/ecommerce/lib"
+	"github.com/stretchr/testify/require"
 )
 
 var testLogger = slog.New(slog.NewTextHandler(os.Stdout, nil))
@@ -92,7 +93,7 @@ func TestCheckUserExistWithEmail(t *testing.T) {
 	})
 }
 
-// TestFindUserByID tests the findUserByID method of UserRepositoryDB,
+// TestFindUserByID tests the findByID method of UserRepositoryDB,
 // checks correct user domain struct outputs and http status code if error occurred
 // It covers the following scenarios:
 // 1. Successful retrieval of a user by ID.
@@ -113,7 +114,7 @@ func TestFindUserByID(t *testing.T) {
 			WithArgs(1).
 			WillReturnRows(rows)
 
-		user, apiErr := repo.findUserByID(context.Background(), 1)
+		user, apiErr := repo.findByID(context.Background(), 1)
 		require.Nil(t, apiErr)
 		require.Equal(t, mockUser, *user)
 	})
@@ -123,7 +124,7 @@ func TestFindUserByID(t *testing.T) {
 			WithArgs(2).
 			WillReturnError(sql.ErrNoRows)
 
-		user, apiErr := repo.findUserByID(context.Background(), 2)
+		user, apiErr := repo.findByID(context.Background(), 2)
 		require.NotNil(t, apiErr)
 		require.Equal(t, lib.UnexpectedDatabaseErr, apiErr.AsMessage())
 		require.Equal(t, http.StatusNotFound, apiErr.StatusCode())
@@ -135,7 +136,7 @@ func TestFindUserByID(t *testing.T) {
 			WithArgs(3).
 			WillReturnError(errors.New("some internal error"))
 
-		user, apiErr := repo.findUserByID(context.Background(), 3)
+		user, apiErr := repo.findByID(context.Background(), 3)
 		require.NotNil(t, apiErr)
 		require.Equal(t, lib.UnexpectedDatabaseErr, apiErr.AsMessage())
 		require.Equal(t, http.StatusInternalServerError, apiErr.StatusCode())
@@ -143,7 +144,7 @@ func TestFindUserByID(t *testing.T) {
 	})
 }
 
-// TestFindUserByUUID tests the findUserByUUID method of UserRepositoryDB,
+// TestFindUserByUUID tests the findByUUID method of UserRepositoryDB,
 // checks correct user domain struct outputs and http status code if error occurred
 // It covers the following scenarios:
 // 1. Successful retrieval of a user by UUID.
@@ -164,7 +165,7 @@ func TestFindUserByUUID(t *testing.T) {
 			WithArgs(mockUser.UserUUID).
 			WillReturnRows(rows)
 
-		user, apiErr := repo.findUserByUUID(context.Background(), mockUser.UserUUID)
+		user, apiErr := repo.findByUUID(context.Background(), mockUser.UserUUID)
 		require.Nil(t, apiErr)
 		require.Equal(t, mockUser, *user)
 	})
@@ -175,7 +176,7 @@ func TestFindUserByUUID(t *testing.T) {
 			WithArgs(UserUUID).
 			WillReturnError(sql.ErrNoRows)
 
-		user, apiErr := repo.findUserByUUID(context.Background(), UserUUID)
+		user, apiErr := repo.findByUUID(context.Background(), UserUUID)
 		require.NotNil(t, apiErr)
 		require.Equal(t, lib.UnexpectedDatabaseErr, apiErr.AsMessage())
 		require.Equal(t, http.StatusNotFound, apiErr.StatusCode())
@@ -188,7 +189,7 @@ func TestFindUserByUUID(t *testing.T) {
 			WithArgs(UserUUID).
 			WillReturnError(errors.New("error scanning user data by uuid"))
 
-		user, apiErr := repo.findUserByUUID(context.Background(), UserUUID)
+		user, apiErr := repo.findByUUID(context.Background(), UserUUID)
 		require.NotNil(t, apiErr)
 		require.Equal(t, lib.UnexpectedDatabaseErr, apiErr.AsMessage())
 		require.Equal(t, http.StatusInternalServerError, apiErr.StatusCode())

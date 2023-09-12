@@ -13,9 +13,9 @@ type UserRepository interface {
 	Update(ctx context.Context, user User) (*User, lib.APIError)              // update(unique:uuid)
 	FindAll(ctx context.Context, opts FindAllUsersOptions) ([]User, *NextPageInfo, lib.APIError)
 
-	findUserByQuery(ctx context.Context, query string, arg interface{}) (*User, lib.APIError)
-	findUserByID(ctx context.Context, userID int) (*User, lib.APIError)
-	findUserByUUID(ctx context.Context, userUUID string) (*User, lib.APIError) // helper needed in update
+	findByQuery(ctx context.Context, query string, arg interface{}) (*User, lib.APIError)
+	findByID(ctx context.Context, userID int) (*User, lib.APIError)
+	findByUUID(ctx context.Context, userUUID string) (*User, lib.APIError) // helper needed in update
 	checkUserExistWithEmail(ctx context.Context, email string) lib.APIError
 }
 

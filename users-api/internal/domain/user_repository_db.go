@@ -55,7 +55,7 @@ func (d *UserRepositoryDB) Create(ctx context.Context, u User, salt string) (*Us
 		return nil, lib.NewInternalServerError(lib.UnexpectedDatabaseErr, err)
 	}
 
-	return d.findUserByID(ctx, id)
+	return d.findByID(ctx, id)
 }
 
 // Update is responsible for updating a user from fields provided in domain.UpdateUserRequestDTO
@@ -79,7 +79,7 @@ func (d *UserRepositoryDB) Update(ctx context.Context, user User) (*User, lib.AP
 		}
 	}()
 
-	existingUser, apiErr := d.findUserByUUID(ctx, user.UserUUID)
+	existingUser, apiErr := d.findByUUID(ctx, user.UserUUID)
 	if apiErr != nil {
 		return nil, apiErr
 	}
@@ -98,12 +98,12 @@ func (d *UserRepositoryDB) Update(ctx context.Context, user User) (*User, lib.AP
 		return nil, lib.NewInternalServerError(lib.UnexpectedDatabaseErr, err)
 	}
 
-	return d.findUserByID(ctx, existingUser.UserID)
+	return d.findByID(ctx, existingUser.UserID)
 }
 
 // findUserByQuery executes the given SQL query to find a user
 // returns error if internal server error happened.
-func (d *UserRepositoryDB) findUserByQuery(ctx context.Context, query string, arg interface{}) (*User, lib.APIError) {
+func (d *UserRepositoryDB) findByQuery(ctx context.Context, query string, arg interface{}) (*User, lib.APIError) {
 	row := d.db.QueryRowContext(ctx, query, arg)
 
 	var user User
@@ -125,14 +125,14 @@ func (d *UserRepositoryDB) findUserByQuery(ctx context.Context, query string, ar
 
 // findUserByID takes userId and returns a single user's record
 // returns error if internal server error happened.
-func (d *UserRepositoryDB) findUserByID(ctx context.Context, userID int) (*User, lib.APIError) {
-	return d.findUserByQuery(ctx, sqlFindUserByID, userID)
+func (d *UserRepositoryDB) findByID(ctx context.Context, userID int) (*User, lib.APIError) {
+	return d.findByQuery(ctx, sqlFindUserByID, userID)
 }
 
 // findUserByUUID takes userUUID and returns a single user's record
 // returns error if internal server error happened.
-func (d *UserRepositoryDB) findUserByUUID(ctx context.Context, userUUID string) (*User, lib.APIError) {
-	return d.findUserByQuery(ctx, sqlFindUserByUUID, userUUID)
+func (d *UserRepositoryDB) findByUUID(ctx context.Context, userUUID string) (*User, lib.APIError) {
+	return d.findByQuery(ctx, sqlFindUserByUUID, userUUID)
 }
 
 // checkUserExistWithEmail checks if user exist with this email or not,
