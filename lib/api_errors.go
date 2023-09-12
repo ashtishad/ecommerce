@@ -42,6 +42,7 @@ func (e apiError) Wrap(err error) APIError {
 	if err != nil {
 		e.Causes = append(e.Causes, err.Error())
 	}
+
 	return e
 }
 
@@ -106,6 +107,7 @@ func NewInternalServerError(message string, err error) APIError {
 	if err != nil {
 		result.Causes = append(result.Causes, err.Error())
 	}
+
 	return result
 }
 

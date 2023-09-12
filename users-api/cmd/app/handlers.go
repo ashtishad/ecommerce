@@ -2,12 +2,13 @@ package app
 
 import (
 	"context"
+	"log/slog"
+	"net/http"
+
 	"github.com/ashtishad/ecommerce/lib"
 	"github.com/ashtishad/ecommerce/users-api/internal/domain"
 	"github.com/ashtishad/ecommerce/users-api/internal/service"
 	"github.com/gin-gonic/gin"
-	"log/slog"
-	"net/http"
 )
 
 type UserHandlers struct {
@@ -24,6 +25,7 @@ func (us *UserHandlers) createUserHandler(c *gin.Context) {
 	if err := c.ShouldBindJSON(&newUserRequest); err != nil {
 		us.l.Error("failed to bind create user req dto", "err", err.Error())
 		c.JSON(http.StatusBadRequest, gin.H{"error": "bad request"})
+
 		return
 	}
 
@@ -50,13 +52,16 @@ func (us *UserHandlers) updateUserHandler(c *gin.Context) {
 	if err := c.ShouldBindJSON(&updateUserRequest); err != nil {
 		us.l.Error("failed to bind update user req dto", "err", err.Error())
 		c.JSON(http.StatusBadRequest, gin.H{"error": "bad request"})
+
 		return
 	}
 
 	timeoutCtx, cancel := context.WithTimeout(c.Request.Context(), lib.TimeoutUpdateUser)
 	defer cancel()
+
 	updateUserRequest.UserUUID = UserUUID
 	userResponse, err := us.service.UpdateUser(timeoutCtx, updateUserRequest)
+
 	if err != nil {
 		c.JSON(err.StatusCode(), err)
 		return
@@ -76,7 +81,9 @@ func (us *UserHandlers) GetUsersHandler(c *gin.Context) {
 
 	timeoutCtx, cancel := context.WithTimeout(c.Request.Context(), lib.TimeoutGetUsers)
 	defer cancel()
+
 	users, pageInfo, err := us.service.GetAllUsers(timeoutCtx, opts)
+
 	if err != nil {
 		c.JSON(err.StatusCode(), err)
 		return

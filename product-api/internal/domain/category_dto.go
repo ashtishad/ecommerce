@@ -3,7 +3,7 @@ package domain
 import "time"
 
 type CategoryResponseDTO struct {
-	CategoryUUID     string             `json:"categoryUUID"`
+	CategoryUUID     string             `json:"categoryUuid"`
 	Name             string             `json:"name"`
 	Description      string             `json:"description"`
 	Status           string             `json:"status"`

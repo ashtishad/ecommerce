@@ -2,20 +2,21 @@ package generate
 
 import (
 	"database/sql"
-	"github.com/ashtishad/ecommerce/users-api/pkg/constants"
-	"github.com/ashtishad/ecommerce/users-api/pkg/hashpassword"
 	"log/slog"
 	"math/rand"
 	"time"
 
+	"github.com/ashtishad/ecommerce/users-api/pkg/constants"
+	"github.com/ashtishad/ecommerce/users-api/pkg/hashpassword"
+
 	"github.com/brianvoe/gofakeit/v6"
 )
 
-// GenerateUsers populates n numbers of random users in users and users_salts tables,
+// Users populates n numbers of random users in users and users_salts tables,
 // It accepts a *sql.DB instance to interact with the actual database and
 // an integer n to specify how many records do we want to insert,
 // The function uses a transaction to insert the users, rolling back the transaction and logging an error message if anything goes wrong.
-func GenerateUsers(db *sql.DB, l *slog.Logger, n int) {
+func Users(db *sql.DB, l *slog.Logger, n int) {
 	gofakeit.Seed(0)
 
 	tx, err := db.Begin()
@@ -26,8 +27,7 @@ func GenerateUsers(db *sql.DB, l *slog.Logger, n int) {
 
 	defer func() {
 		if err != nil {
-			rollBackErr := tx.Rollback()
-			if rollBackErr != nil {
+			if rollBackErr := tx.Rollback(); rollBackErr != nil {
 				l.Warn("failed to rollback", "err", rollBackErr.Error())
 				return
 			}
@@ -40,11 +40,14 @@ func GenerateUsers(db *sql.DB, l *slog.Logger, n int) {
 		phone := gofakeit.Phone()
 		password := gofakeit.Password(true, true, true, false, false, 12)
 
-		salt, err := hashpassword.GenerateSalt()
+		var salt string
+
+		salt, err = hashpassword.GenerateSalt()
 		if err != nil {
 			l.Warn("failed to generate salt", "err", err.Error())
 			return
 		}
+
 		hashedPassword := hashpassword.HashPassword(password, salt)
 
 		signUpOption := getRandomSignUpOption()
@@ -52,15 +55,13 @@ func GenerateUsers(db *sql.DB, l *slog.Logger, n int) {
 		timezone := gofakeit.TimeZoneRegion()
 
 		var userID int
-		err = tx.QueryRow(`INSERT INTO users (email, password_hash, full_name, phone, sign_up_option, status, timezone) VALUES ($1, $2, $3, $4, $5, $6, $7) RETURNING user_id`,
-			email, hashedPassword, fullName, phone, signUpOption, userStatus, timezone).Scan(&userID)
-		if err != nil {
+		if err = tx.QueryRow(`INSERT INTO users (email, password_hash, full_name, phone, sign_up_option, status, timezone) VALUES ($1, $2, $3, $4, $5, $6, $7) RETURNING user_id`,
+			email, hashedPassword, fullName, phone, signUpOption, userStatus, timezone).Scan(&userID); err != nil {
 			l.Warn("failed to insert user", "err", err.Error())
 			return
 		}
 
-		_, err = tx.Exec(`INSERT INTO user_salts (user_id, salt) VALUES ($1, $2)`, userID, salt)
-		if err != nil {
+		if _, err = tx.Exec(`INSERT INTO user_salts (user_id, salt) VALUES ($1, $2)`, userID, salt); err != nil {
 			l.Warn("failed to insert salt", "err", err.Error())
 			return
 		}
@@ -74,9 +75,7 @@ func GenerateUsers(db *sql.DB, l *slog.Logger, n int) {
 	}
 
 	// update users_user_id_seq
-	query := "SELECT setval('users_user_id_seq', $1)"
-	_, err = db.Exec(query, n)
-	if err != nil {
+	if _, err = db.Exec("SELECT setval('users_user_id_seq', $1)", n); err != nil {
 		l.Warn("failed to update user_id_seq", "err", err.Error())
 		return
 	}
@@ -85,6 +84,7 @@ func GenerateUsers(db *sql.DB, l *slog.Logger, n int) {
 // getRandomUserStatus generates three possible statuses: "active", "inactive", or "deleted".
 // The status "active" has a 80% chance of being chosen, "inactive" and "deleted" both have a 10% chance.
 func getRandomUserStatus() string {
+	//nolint:gosec // this is test data,security is not necessary here
 	randNumber := rand.Intn(100)
 
 	switch {
@@ -100,9 +100,11 @@ func getRandomUserStatus() string {
 // getRandomSignUpOption generates two possible statuses: "general", "google".
 // general has 65% chance of being chosen and google has 35%.
 func getRandomSignUpOption() string {
+	//nolint:gosec // this is test data,security is not necessary here
 	randNumber := rand.Intn(100)
 	if randNumber < 65 {
 		return constants.SignupOptGeneral
 	}
+
 	return constants.SignUpOptGoogle
 }

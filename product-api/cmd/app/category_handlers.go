@@ -2,12 +2,13 @@ package app
 
 import (
 	"context"
+	"log/slog"
+	"net/http"
+
 	"github.com/ashtishad/ecommerce/lib"
 	"github.com/ashtishad/ecommerce/product-api/internal/domain"
 	"github.com/ashtishad/ecommerce/product-api/internal/service"
 	"github.com/gin-gonic/gin"
-	"log/slog"
-	"net/http"
 )
 
 type CategoryHandlers struct {
@@ -20,6 +21,7 @@ func (ch *CategoryHandlers) CreateCategory(c *gin.Context) {
 	if err := c.ShouldBindJSON(&newCategoryReqDTO); err != nil {
 		ch.l.Error("failed to bind create category req dto", "err", err.Error())
 		c.JSON(http.StatusBadRequest, gin.H{"error": "bad request"})
+
 		return
 	}
 

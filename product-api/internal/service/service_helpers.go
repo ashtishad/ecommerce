@@ -1,11 +1,12 @@
 package service
 
 import (
-	"github.com/ashtishad/ecommerce/lib"
-	"github.com/ashtishad/ecommerce/product-api/internal/domain"
 	"regexp"
 	"strings"
 	"unicode/utf8"
+
+	"github.com/ashtishad/ecommerce/lib"
+	"github.com/ashtishad/ecommerce/product-api/internal/domain"
 )
 
 // ValidateNewCategoryRequest validates the new category request data.

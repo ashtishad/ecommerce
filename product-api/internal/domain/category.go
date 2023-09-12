@@ -3,8 +3,8 @@ package domain
 import "time"
 
 type Category struct {
-	CategoryID   int       `json:"categoryID"`
-	CategoryUUID string    `json:"categoryUUID"`
+	CategoryID   int       `json:"categoryId"`
+	CategoryUUID string    `json:"categoryUuid"`
 	Name         string    `json:"name"`
 	Description  string    `json:"description"`
 	Status       string    `json:"status"`

@@ -5,8 +5,9 @@ import (
 	"database/sql"
 	"errors"
 	"fmt"
-	"github.com/ashtishad/ecommerce/lib"
 	"log/slog"
+
+	"github.com/ashtishad/ecommerce/lib"
 )
 
 type UserRepositoryDB struct {
@@ -33,6 +34,7 @@ func (d *UserRepositoryDB) Create(ctx context.Context, u User, salt string) (*Us
 	defer func() {
 		if err != nil {
 			d.l.Error("unable to create user", "err", err.Error())
+
 			if rbErr := tx.Rollback(); rbErr != nil {
 				d.l.Warn("unable to rollback", "rollbackErr", rbErr)
 				return
@@ -53,7 +55,7 @@ func (d *UserRepositoryDB) Create(ctx context.Context, u User, salt string) (*Us
 		return nil, lib.NewInternalServerError(lib.UnexpectedDatabaseErr, err)
 	}
 
-	return d.findUserByID(ctx, id)
+	return d.findByID(ctx, id)
 }
 
 // Update is responsible for updating a user from fields provided in domain.UpdateUserRequestDTO
@@ -68,14 +70,16 @@ func (d *UserRepositoryDB) Update(ctx context.Context, user User) (*User, lib.AP
 	defer func() {
 		if err != nil {
 			d.l.Error("unable to update user", "err", err.Error())
+
 			if rbErr := tx.Rollback(); rbErr != nil {
 				d.l.Warn("unable to rollback", "rollbackErr", rbErr)
 			}
+
 			return
 		}
 	}()
 
-	existingUser, apiErr := d.findUserByUUID(ctx, user.UserUUID)
+	existingUser, apiErr := d.findByUUID(ctx, user.UserUUID)
 	if apiErr != nil {
 		return nil, apiErr
 	}
@@ -94,45 +98,41 @@ func (d *UserRepositoryDB) Update(ctx context.Context, user User) (*User, lib.AP
 		return nil, lib.NewInternalServerError(lib.UnexpectedDatabaseErr, err)
 	}
 
-	return d.findUserByID(ctx, existingUser.UserID)
+	return d.findByID(ctx, existingUser.UserID)
+}
+
+// findUserByQuery executes the given SQL query to find a user
+// returns error if internal server error happened.
+func (d *UserRepositoryDB) findByQuery(ctx context.Context, query string, arg interface{}) (*User, lib.APIError) {
+	row := d.db.QueryRowContext(ctx, query, arg)
+
+	var user User
+	err := row.Scan(&user.UserID, &user.UserUUID, &user.Email, &user.PasswordHash, &user.FullName, &user.Phone, &user.SignUpOption, &user.Status, &user.Timezone, &user.CreatedAt, &user.UpdatedAt)
+
+	if err != nil {
+		if errors.Is(err, sql.ErrNoRows) {
+			d.l.Error(ErrUserNotFound, "arg", arg, "err", err.Error())
+			return nil, lib.NewNotFoundError(lib.UnexpectedDatabaseErr)
+		}
+
+		d.l.Error(ErrScanningData, "err", err.Error())
+
+		return nil, lib.NewInternalServerError(lib.UnexpectedDatabaseErr, err)
+	}
+
+	return &user, nil
 }
 
 // findUserByID takes userId and returns a single user's record
 // returns error if internal server error happened.
-func (d *UserRepositoryDB) findUserByID(ctx context.Context, userID int) (*User, lib.APIError) {
-	row := d.db.QueryRowContext(ctx, sqlFindUserByID, userID)
-
-	var user User
-	err := row.Scan(&user.UserID, &user.UserUUID, &user.Email, &user.PasswordHash, &user.FullName, &user.Phone, &user.SignUpOption, &user.Status, &user.Timezone, &user.CreatedAt, &user.UpdatedAt)
-	if err != nil {
-		if errors.Is(err, sql.ErrNoRows) {
-			d.l.Error(ErrUserNotFound, "arg", userID, "err", err.Error())
-			return nil, lib.NewNotFoundError(lib.UnexpectedDatabaseErr)
-		}
-		d.l.Error(ErrScanningData, "err", err.Error())
-		return nil, lib.NewInternalServerError(lib.UnexpectedDatabaseErr, err)
-	}
-
-	return &user, nil
+func (d *UserRepositoryDB) findByID(ctx context.Context, userID int) (*User, lib.APIError) {
+	return d.findByQuery(ctx, sqlFindUserByID, userID)
 }
 
 // findUserByUUID takes userUUID and returns a single user's record
 // returns error if internal server error happened.
-func (d *UserRepositoryDB) findUserByUUID(ctx context.Context, userUUID string) (*User, lib.APIError) {
-	row := d.db.QueryRowContext(ctx, sqlFindUserByUUID, userUUID)
-
-	var user User
-	err := row.Scan(&user.UserID, &user.UserUUID, &user.Email, &user.PasswordHash, &user.FullName, &user.Phone, &user.SignUpOption, &user.Status, &user.Timezone, &user.CreatedAt, &user.UpdatedAt)
-	if err != nil {
-		if errors.Is(err, sql.ErrNoRows) {
-			d.l.Error(ErrUserNotFound, "arg", userUUID, "err", err.Error())
-			return nil, lib.NewNotFoundError(lib.UnexpectedDatabaseErr)
-		}
-		d.l.Error(ErrScanningData, "err", err.Error())
-		return nil, lib.NewInternalServerError(lib.UnexpectedDatabaseErr, err)
-	}
-
-	return &user, nil
+func (d *UserRepositoryDB) findByUUID(ctx context.Context, userUUID string) (*User, lib.APIError) {
+	return d.findByQuery(ctx, sqlFindUserByUUID, userUUID)
 }
 
 // checkUserExistWithEmail checks if user exist with this email or not,
@@ -141,20 +141,24 @@ func (d *UserRepositoryDB) findUserByUUID(ctx context.Context, userUUID string) 
 func (d *UserRepositoryDB) checkUserExistWithEmail(ctx context.Context, email string) lib.APIError {
 	var exists bool
 	err := d.db.QueryRowContext(ctx, sqlCheckUserExistsWithEmail, email).Scan(&exists)
+
 	if err != nil && !errors.Is(err, sql.ErrNoRows) {
 		d.l.Error(ErrCheckUserByEmail, "err", err.Error())
 		return lib.NewInternalServerError(lib.UnexpectedDatabaseErr, err)
 	}
-	if exists == true {
+
+	if exists {
 		d.l.Error(ErrUserAlreadyExistEmail, "email", email)
 		return lib.NewDBFieldConflictError(ErrUserAlreadyExistEmail)
 	}
+
 	return nil
 }
 
 // FindAll retrieves all users from the database with optional filters
 func (d *UserRepositoryDB) FindAll(ctx context.Context, opts FindAllUsersOptions) ([]User, *NextPageInfo, lib.APIError) {
 	var users []User
+
 	var nextPageInfo NextPageInfo
 
 	baseQuery := "SELECT user_id, user_uuid, email, password_hash, full_name, phone, sign_up_option, status, timezone, created_at, updated_at FROM users WHERE user_id > $1 "
@@ -166,6 +170,7 @@ func (d *UserRepositoryDB) FindAll(ctx context.Context, opts FindAllUsersOptions
 	if opts.Status != "" {
 		baseQuery += fmt.Sprintf("AND status = $%d ", argCount)
 		countQuery += fmt.Sprintf("AND status = $%d ", argCount)
+
 		args = append(args, opts.Status)
 		argCount++
 	}
@@ -173,6 +178,7 @@ func (d *UserRepositoryDB) FindAll(ctx context.Context, opts FindAllUsersOptions
 	if opts.SignUpOption != "" {
 		baseQuery += fmt.Sprintf("AND sign_up_option = $%d ", argCount)
 		countQuery += fmt.Sprintf("AND sign_up_option = $%d ", argCount)
+
 		args = append(args, opts.SignUpOption)
 		argCount++
 	}
@@ -180,6 +186,7 @@ func (d *UserRepositoryDB) FindAll(ctx context.Context, opts FindAllUsersOptions
 	if opts.Timezone != "" {
 		baseQuery += fmt.Sprintf("AND timezone = $%d ", argCount)
 		countQuery += fmt.Sprintf("AND timezone = $%d ", argCount)
+
 		args = append(args, opts.Timezone)
 		argCount++
 	}
@@ -192,8 +199,10 @@ func (d *UserRepositoryDB) FindAll(ctx context.Context, opts FindAllUsersOptions
 	if err != nil {
 		d.l.Warn("base query", "sql", baseQuery)
 		d.l.Error(lib.ErrRetrievingRows, "err", err.Error())
+
 		return nil, nil, lib.NewInternalServerError(lib.UnexpectedDatabaseErr, err)
 	}
+
 	defer func(rows *sql.Rows) {
 		rowsClsErr := rows.Close()
 		if rowsClsErr != nil {
@@ -220,6 +229,7 @@ func (d *UserRepositoryDB) FindAll(ctx context.Context, opts FindAllUsersOptions
 			d.l.Error(lib.ErrScanningRows, "err", err.Error())
 			return nil, nil, lib.NewInternalServerError(lib.UnexpectedDatabaseErr, err)
 		}
+
 		users = append(users, user)
 	}
 

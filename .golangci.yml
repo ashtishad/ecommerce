@@ -1,88 +1,69 @@
 run:
-  # The default concurrency value is the number of available CPU.
   concurrency: 4
-
-  # Timeout for analysis, e.g. 30s, 5m.
-  # Default: 1m
   timeout: 5m
-
-  # Exit code when at least one issue was found.
-  # Default: 1
   issues-exit-code: 2
-
-  # Include test files or not.
-  # Default: true
   tests: false
-  skip-dirs:
-#    - server/models
-#    - server/graph
-# output configuration options
+
 output:
-  # Format: colored-line-number|line-number|json|tab|checkstyle|code-climate|junit-xml|github-actions
-  #
-  # Multiple can be specified by separating them by comma, output can be provided
-  # for each of them by separating format name and path by colon symbol.
-  # Output path can be either `stdout`, `stderr` or path to the file to write to.
-  # Example: "checkstyle:report.json,colored-line-number"
-  #
-  # Default: colored-line-number
-  # format: json
-
-  # Print lines of code with issue.
-  # Default: true
   print-issued-lines: false
-
-  # Print linter name in the end of issue text.
-  # Default: true
   print-linter-name: true
-
-  # Make issues output unique by line.
-  # Default: true
   uniq-by-line: false
-
-  # Add a prefix to the output file references.
-  # Default is no prefix.
   path-prefix: ""
-
-  # Sort results by: filepath, line and column.
   sort-results: true
+
 linters:
+  disable-all: true
+
   enable:
     - errcheck
     - gosimple
     - govet
     - ineffassign
     - staticcheck
-    - typecheck
     - unused
+    - revive
+    - wsl
+    - stylecheck
+    - cyclop
+    - prealloc
+    - dupl
+    - goimports
+    - nilnil
+    - tagalign
+    - wrapcheck
+    - gosec
     - asciicheck
     - bodyclose
-    - dogsled
+    - nakedret
     - durationcheck
     - errname
     - exportloopref
-    - forbidigo
     - forcetypeassert
     - goconst
     - gocritic
+    - tagliatelle
+
+#    # To-DO
+#    - funlen
+#    # long lines
+#    - lll
+#    # json tag according frontend convention
+#    - tagliatelle
+
 
 linters-settings:
   cyclop:
-    # These values should be progressively reduced
-    max-complexity: 36
-    package-average: 8.5
-  govet:
-    # Enable all analyzers.
-    # Default: false
-    enable-all: true
-    # Disable analyzers by name.
-    # Run `go tool vet help` to see all analyzers.
-    # Default: []
-    disable:
-      - composites
-      - fieldalignment
-      - shadow
-  gosimple:
-    enable-all: true
-    # ST1002 is linting for exists == false, which we prefer for readability.
-    checks: ["all", "-S1002", "-S1028"]
+    max-complexity: 14
+    package-average: 6.0
+    skip-tests: true
+  nilnil:
+    # Checks that there is no simultaneous return of `nil` error and an invalid value.
+    checked-types:
+      - ptr
+      - func
+      - iface
+      - map
+      - chan
+  nakedret:
+    # Make an issue if func has more lines of code than this setting, and it has naked returns.
+    max-func-lines: 30
