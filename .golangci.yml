@@ -32,6 +32,15 @@ linters:
     - tagalign
     - wrapcheck
     - gosec
+    - asciicheck
+    - bodyclose
+    - nakedret
+    - durationcheck
+    - errname
+    - exportloopref
+    - forcetypeassert
+    - goconst
+    - gocritic
 
 #    # To-DO
 #    - funlen
@@ -40,7 +49,6 @@ linters:
 #    # json tag according frontend convention
 #    - tagliatelle
 
-#    - gosec
 
 linters-settings:
   cyclop:
@@ -55,5 +63,6 @@ linters-settings:
       - iface
       - map
       - chan
-
-
+  nakedret:
+    # Make an issue if func has more lines of code than this setting, and it has naked returns.
+    max-func-lines: 30
