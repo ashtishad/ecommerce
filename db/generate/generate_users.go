@@ -27,8 +27,7 @@ func Users(db *sql.DB, l *slog.Logger, n int) {
 
 	defer func() {
 		if err != nil {
-			rollBackErr := tx.Rollback()
-			if rollBackErr != nil {
+			if rollBackErr := tx.Rollback(); rollBackErr != nil {
 				l.Warn("failed to rollback", "err", rollBackErr.Error())
 				return
 			}
@@ -41,7 +40,9 @@ func Users(db *sql.DB, l *slog.Logger, n int) {
 		phone := gofakeit.Phone()
 		password := gofakeit.Password(true, true, true, false, false, 12)
 
-		salt, err := hashpassword.GenerateSalt()
+		var salt string
+
+		salt, err = hashpassword.GenerateSalt()
 		if err != nil {
 			l.Warn("failed to generate salt", "err", err.Error())
 			return
@@ -54,16 +55,13 @@ func Users(db *sql.DB, l *slog.Logger, n int) {
 		timezone := gofakeit.TimeZoneRegion()
 
 		var userID int
-		err = tx.QueryRow(`INSERT INTO users (email, password_hash, full_name, phone, sign_up_option, status, timezone) VALUES ($1, $2, $3, $4, $5, $6, $7) RETURNING user_id`,
-			email, hashedPassword, fullName, phone, signUpOption, userStatus, timezone).Scan(&userID)
-
-		if err != nil {
+		if err = tx.QueryRow(`INSERT INTO users (email, password_hash, full_name, phone, sign_up_option, status, timezone) VALUES ($1, $2, $3, $4, $5, $6, $7) RETURNING user_id`,
+			email, hashedPassword, fullName, phone, signUpOption, userStatus, timezone).Scan(&userID); err != nil {
 			l.Warn("failed to insert user", "err", err.Error())
 			return
 		}
 
-		_, err = tx.Exec(`INSERT INTO user_salts (user_id, salt) VALUES ($1, $2)`, userID, salt)
-		if err != nil {
+		if _, err = tx.Exec(`INSERT INTO user_salts (user_id, salt) VALUES ($1, $2)`, userID, salt); err != nil {
 			l.Warn("failed to insert salt", "err", err.Error())
 			return
 		}
@@ -77,10 +75,7 @@ func Users(db *sql.DB, l *slog.Logger, n int) {
 	}
 
 	// update users_user_id_seq
-	query := "SELECT setval('users_user_id_seq', $1)"
-	_, err = db.Exec(query, n)
-
-	if err != nil {
+	if _, err = db.Exec("SELECT setval('users_user_id_seq', $1)", n); err != nil {
 		l.Warn("failed to update user_id_seq", "err", err.Error())
 		return
 	}

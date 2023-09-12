@@ -27,18 +27,18 @@ linters:
     - cyclop
     - prealloc
     - dupl
+    - goimports
+
+#    # To-DO
+#    - funlen
 
 #     # JSON camel want got 'categoryUUID' want 'categoryUuid'
 #    - tagliatelle
 #     # long lines
 #    - lll
 
-#    - dupl
-#    - funlen
 #    - tagalign
 #    - wrapcheck
-#    - prealloc
-#    - nlreturn
 #    - goimports
 #    - gosec
 #    - execinquery
