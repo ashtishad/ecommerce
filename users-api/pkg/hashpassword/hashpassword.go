@@ -4,6 +4,7 @@ import (
 	"crypto/rand"
 	"crypto/sha256"
 	"encoding/hex"
+	"fmt"
 )
 
 // GenerateSalt makes 16 bytes random salt, converts salt to hexadecimal string to avoid database encoding problems
@@ -12,7 +13,7 @@ func GenerateSalt() (string, error) {
 	_, err := rand.Read(salt)
 
 	if err != nil {
-		return "", err
+		return "", fmt.Errorf("could not generate salt: %w", err)
 	}
 
 	return hex.EncodeToString(salt), nil

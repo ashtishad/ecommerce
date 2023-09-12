@@ -19,8 +19,8 @@ type UserResponseDTO struct {
 // NewUserRequestDTO only has required fields for creating a user
 // and, excluded auto-generated fields
 type NewUserRequestDTO struct {
-	Email        string `json:"email" `
-	Password     string `json:"password" `
+	Email        string `json:"email"`
+	Password     string `json:"password"`
 	FullName     string `json:"full_name"`
 	Phone        string `json:"phone"`
 	SignUpOption string `json:"sign_up_option"` // Enum 'general', 'google', can have a default value
@@ -31,7 +31,7 @@ type NewUserRequestDTO struct {
 // and, excluded password, sign_up_option field
 type UpdateUserRequestDTO struct {
 	UserUUID string `json:"user_id"` // path param
-	Email    string `json:"email" `  // while updating, email should be unique
+	Email    string `json:"email"`   // while updating, email should be unique
 	FullName string `json:"full_name"`
 	Phone    string `json:"phone"`
 	Timezone string `json:"timezone"`

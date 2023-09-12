@@ -28,25 +28,31 @@ linters:
     - prealloc
     - dupl
     - goimports
+    - nilnil
+    - tagalign
+    - wrapcheck
 
 #    # To-DO
 #    - funlen
-
-#     # JSON camel want got 'categoryUUID' want 'categoryUuid'
-#    - tagliatelle
-#     # long lines
+#    # long lines
 #    - lll
+#    # json tag according frontend convention
+#    - tagliatelle
 
-#    - tagalign
-#    - wrapcheck
-#    - goimports
 #    - gosec
-#    - execinquery
 
 linters-settings:
   cyclop:
     max-complexity: 14
     package-average: 6.0
     skip-tests: true
+  nilnil:
+    # Checks that there is no simultaneous return of `nil` error and an invalid value.
+    checked-types:
+      - ptr
+      - func
+      - iface
+      - map
+      - chan
 
 
