@@ -22,13 +22,18 @@ linters:
     - staticcheck
     - unused
     - revive
+    - wsl
+    - stylecheck
+    - cyclop
+    - prealloc
+
+#     # JSON camel want got 'categoryUUID' want 'categoryUuid'
 #    - tagliatelle
+#     # long lines
 #    - lll
+
 #    - dupl
-#    - gosimple
 #    - funlen
-#    - godot
-#    - cyclop
 #    - tagalign
 #    - wrapcheck
 #    - prealloc
@@ -36,16 +41,11 @@ linters:
 #    - goimports
 #    - gosec
 #    - execinquery
-#    # The following are for occasional usage(style)
-#    - wsl
-#    - stylecheck
+
 linters-settings:
   cyclop:
-    # The maximal code complexity to report.
-    max-complexity: 10
-    # The maximal average package complexity.
-    package-average: 2.500000
-    # Should ignore tests.
+    max-complexity: 14
+    package-average: 6.0
     skip-tests: true
 
 

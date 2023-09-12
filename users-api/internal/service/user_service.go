@@ -2,11 +2,12 @@ package service
 
 import (
 	"context"
+	"strings"
+
 	"github.com/ashtishad/ecommerce/lib"
 	"github.com/ashtishad/ecommerce/users-api/internal/domain"
 	"github.com/ashtishad/ecommerce/users-api/pkg/constants"
 	"github.com/ashtishad/ecommerce/users-api/pkg/hashpassword"
-	"strings"
 )
 
 type UserService interface {
@@ -93,7 +94,7 @@ func (service *DefaultUserService) GetAllUsers(ctx context.Context, request doma
 		return nil, nil, apiErr
 	}
 
-	var userDTOs []domain.UserResponseDTO
+	userDTOs := make([]domain.UserResponseDTO, 0, len(users))
 
 	for _, u := range users {
 		userResponseDTO := u.ToUserResponseDTO()
