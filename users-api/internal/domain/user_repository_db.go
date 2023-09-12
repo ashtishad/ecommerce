@@ -157,7 +157,7 @@ func (d *UserRepositoryDB) checkUserExistWithEmail(ctx context.Context, email st
 		return lib.NewInternalServerError(lib.UnexpectedDatabaseErr, err)
 	}
 
-	if exists == true {
+	if exists {
 		d.l.Error(ErrUserAlreadyExistEmail, "email", email)
 		return lib.NewDBFieldConflictError(ErrUserAlreadyExistEmail)
 	}

@@ -35,7 +35,7 @@ func InitSlogger() *slog.Logger {
 }
 
 func InitDBClient(l *slog.Logger) *sql.DB {
-	dbClient := conn.GetDbClient(l)
+	dbClient := conn.GetDBClient(l)
 
 	m, err := migrate.New(
 		"file://db/migrations",
@@ -52,7 +52,7 @@ func InitDBClient(l *slog.Logger) *sql.DB {
 	return dbClient
 }
 
-func GracefulShutdown(srv *http.Server, ctx context.Context, wg *sync.WaitGroup, serverName string) {
+func GracefulShutdown(ctx context.Context, srv *http.Server, wg *sync.WaitGroup, serverName string) {
 	defer wg.Done()
 	log.Printf("Shutting down %s server...\n", serverName)
 

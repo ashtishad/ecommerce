@@ -25,7 +25,7 @@ func Start(srv *http.Server, dbClient *sql.DB, l *slog.Logger) {
 		l:       l,
 	}
 	// route url mappings
-	setProductApiRoutes(r, ch)
+	setProductAPIRoutes(r, ch)
 
 	// custom logger middleware
 	r.Use(gin.LoggerWithFormatter(lib.Logger))
@@ -41,7 +41,7 @@ func Start(srv *http.Server, dbClient *sql.DB, l *slog.Logger) {
 	}()
 }
 
-func setProductApiRoutes(r *gin.Engine, ch CategoryHandlers) {
+func setProductAPIRoutes(r *gin.Engine, ch CategoryHandlers) {
 	categoriesRoutes := r.Group("/categories")
 	{
 		categoriesRoutes.POST("", ch.CreateCategory)

@@ -75,7 +75,7 @@ func (d *CategoryRepoDB) checkCategoryNameExists(ctx context.Context, categoryNa
 // findCategoryByID takes categoryID and returns a single category record
 // returns error(500 or 404) if internal server error happened.
 func (d *CategoryRepoDB) findCategoryByID(ctx context.Context, categoryID int) (*Category, lib.APIError) {
-	row := d.db.QueryRowContext(ctx, sqlSelectCategoryById, categoryID)
+	row := d.db.QueryRowContext(ctx, sqlSelectCategoryByID, categoryID)
 
 	var category Category
 	err := row.Scan(&category.CategoryID,

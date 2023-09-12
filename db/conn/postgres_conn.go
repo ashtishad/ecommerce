@@ -38,8 +38,8 @@ func GetDSNString(l *slog.Logger) string {
 	return dsn.String()
 }
 
-// GetDbClient creates a new database connection and returns it
-func GetDbClient(l *slog.Logger) *sql.DB {
+// GetDBClient creates a new database connection and returns it
+func GetDBClient(l *slog.Logger) *sql.DB {
 	dsn := GetDSNString(l)
 	db, err := sql.Open("postgres", dsn)
 

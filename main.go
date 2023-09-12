@@ -51,8 +51,8 @@ func main() {
 
 	wg.Add(2)
 
-	go lib.GracefulShutdown(userServer, ctx, &wg, "User")
-	go lib.GracefulShutdown(productServer, ctx, &wg, "Product")
+	go lib.GracefulShutdown(ctx, userServer, &wg, "User")
+	go lib.GracefulShutdown(ctx, productServer, &wg, "Product")
 
 	wg.Wait()
 }

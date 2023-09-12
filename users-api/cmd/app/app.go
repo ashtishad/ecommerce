@@ -25,7 +25,7 @@ func Start(srv *http.Server, dbClient *sql.DB, l *slog.Logger) {
 	uh := UserHandlers{service.NewUserService(userRepositoryDB), l}
 
 	// route url mappings
-	setUsersApiRoutes(r, uh)
+	setUsersAPIRoutes(r, uh)
 
 	// custom logger middleware
 	r.Use(gin.LoggerWithFormatter(lib.Logger))
@@ -41,7 +41,7 @@ func Start(srv *http.Server, dbClient *sql.DB, l *slog.Logger) {
 	}()
 }
 
-func setUsersApiRoutes(r *gin.Engine, uh UserHandlers) {
+func setUsersAPIRoutes(r *gin.Engine, uh UserHandlers) {
 	userRoutes := r.Group("/users")
 	{
 		userRoutes.POST("", uh.createUserHandler)

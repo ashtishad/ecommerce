@@ -1,5 +1,4 @@
 run:
-
   concurrency: 4
   timeout: 5m
   issues-exit-code: 2
@@ -13,60 +12,33 @@ output:
   sort-results: true
 
 linters:
-  enable-all: true
+  disable-all: true
 
-  disable:
-    - goerr113
-    - gofumpt        # Prefer `gofmt` rules / some rules conflict with `wsl`
-    - gomnd          # XXX: For now
-    # I disagree with the rationale behind these linters
-    - depguard
-    - musttag
-    - nonamedreturns
-    - varnamelen
-    - ireturn
-    - exhaustruct
-    # The following are deprecated linters, added to avoid initial warning when running
-    - deadcode
-    - exhaustivestruct
-    - golint
-    - ifshort
-    - interfacer
-    - maligned
-    - nosnakecase
-    - scopelint
-    - varcheck
-    - gci
-    #    - wsl
-    - stylecheck
-    - revive
-    - tagliatelle
-    - lll
-    - dupl
+  enable:
+    - errcheck
     - gosimple
-    - funlen
-    - godot
-    - cyclop
-    - tagalign
-    - wrapcheck
-    - prealloc
-    - nlreturn
-    - goimports
-    - gosec
-    - execinquery
-    # The following are disabled because of go1.18, added to avoid the initial warning when running
-    # https://github.com/golangci/golangci-lint/issues/2649
-    - bodyclose
-    - contextcheck
-    - nilerr
-    - noctx
-    - rowserrcheck
-    - sqlclosecheck
-    - structcheck
-    - tparallel
-    - unparam
-    - wastedassign
-
+    - govet
+    - ineffassign
+    - staticcheck
+    - unused
+##    - revive
+#    - tagliatelle
+#    - lll
+#    - dupl
+#    - gosimple
+#    - funlen
+#    - godot
+#    - cyclop
+#    - tagalign
+#    - wrapcheck
+#    - prealloc
+#    - nlreturn
+#    - goimports
+#    - gosec
+#    - execinquery
+#    # The following are for occasional usage(style)
+#    - wsl
+#    - stylecheck
 linters-settings:
   cyclop:
     # The maximal code complexity to report.
@@ -75,3 +47,4 @@ linters-settings:
     package-average: 2.500000
     # Should ignore tests.
     skip-tests: true
+

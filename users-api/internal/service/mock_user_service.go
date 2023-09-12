@@ -13,7 +13,7 @@ type MockUserService struct {
 	mock.Mock
 }
 
-func (m *MockUserService) NewUser(ctx context.Context, request domain.NewUserRequestDTO) (*domain.UserResponseDTO, lib.APIError) {
+func (m *MockUserService) NewUser(_ context.Context, request domain.NewUserRequestDTO) (*domain.UserResponseDTO, lib.APIError) {
 	args := m.Called(request)
 	if args.Get(0) == nil && args.Get(1) == nil {
 		return nil, nil
@@ -36,7 +36,7 @@ func (m *MockUserService) NewUser(ctx context.Context, request domain.NewUserReq
 	return nil, apiError
 }
 
-func (m *MockUserService) UpdateUser(ctx context.Context, request domain.UpdateUserRequestDTO) (*domain.UserResponseDTO, lib.APIError) {
+func (m *MockUserService) UpdateUser(_ context.Context, request domain.UpdateUserRequestDTO) (*domain.UserResponseDTO, lib.APIError) {
 	args := m.Called(request)
 	if args.Get(0) == nil && args.Get(1) == nil {
 		return nil, nil
@@ -59,7 +59,7 @@ func (m *MockUserService) UpdateUser(ctx context.Context, request domain.UpdateU
 	return nil, apiError
 }
 
-func (m *MockUserService) GetAllUsers(ctx context.Context, request domain.FindAllUsersOptionsDTO) ([]domain.UserResponseDTO, *domain.NextPageInfo, lib.APIError) {
+func (m *MockUserService) GetAllUsers(_ context.Context, request domain.FindAllUsersOptionsDTO) ([]domain.UserResponseDTO, *domain.NextPageInfo, lib.APIError) {
 	args := m.Called(request)
 	if args.Get(0) == nil && args.Get(1) == nil && args.Get(2) == nil {
 		return nil, nil, nil
