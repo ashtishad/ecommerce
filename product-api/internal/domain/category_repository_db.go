@@ -191,15 +191,16 @@ func (d *CategoryRepoDB) insertCategoryRelationship(ctx context.Context, tx *sql
 func (d *CategoryRepoDB) GetAllCategoriesWithHierarchy(ctx context.Context) ([]*Category, lib.APIError) {
 	rows, err := d.db.QueryContext(ctx, sqlGetAllCategoriesWithHierarchy)
 	if err != nil {
-		d.l.Error("failed to query categories:", "err", err)
+		d.l.Error("failed to query get all categories:", "err", err)
 		return nil, lib.NewInternalServerError(lib.UnexpectedDatabaseErr, err)
 	}
-	defer rows.Close()
 
-	return BuildTree(rows)
+	defer closeRows(rows, d.l)
+
+	return d.BuildTree(rows)
 }
 
-func BuildTree(rows *sql.Rows) ([]*Category, lib.APIError) {
+func (d *CategoryRepoDB) BuildTree(rows *sql.Rows) ([]*Category, lib.APIError) {
 	var categories []*Category
 
 	for rows.Next() {
@@ -207,6 +208,7 @@ func BuildTree(rows *sql.Rows) ([]*Category, lib.APIError) {
 		err := rows.Scan(&category.CategoryUUID, &category.ParentCategoryUUID, &category.Level, &category.Name)
 
 		if err != nil {
+			d.l.Error("failed to scan rows:", "err", err)
 			return nil, lib.NewInternalServerError(lib.UnexpectedDatabaseErr, err)
 		}
 
@@ -214,6 +216,7 @@ func BuildTree(rows *sql.Rows) ([]*Category, lib.APIError) {
 	}
 
 	if err := rows.Err(); err != nil {
+		d.l.Error("unexpected error on BuildTree", "err", err)
 		return nil, lib.NewInternalServerError(lib.UnexpectedDatabaseErr, err)
 	}
 
@@ -252,4 +255,10 @@ func buildTree(categories []*Category, parentUUID sql.NullString) []*Category {
 	}
 
 	return tree
+}
+
+func closeRows(rows *sql.Rows, l *slog.Logger) {
+	if rcErr := rows.Close(); rcErr != nil {
+		l.Warn("error closing rows", "err", rcErr)
+	}
 }
