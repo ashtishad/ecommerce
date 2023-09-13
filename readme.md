@@ -2,16 +2,14 @@
 
 ### Microservice List
 
-| Microservices     | Design Decisions      | Status    | Readme Link                                                                 |
-|-------------------|-----------------------|-----------|-----------------------------------------------------------------------------|
-| Users-API         | Go, RDBMS(PostgreSQL) | Completed | [Link](https://github.com/ashtishad/ecommerce/tree/main/users-api#readme)   |
-| Product-API       | Go, RDBMS(PostgreSQL) | Ongoing   | [Link](https://github.com/ashtishad/ecommerce/tree/main/product-api#readme) |
-| Auth-API          |                       | Pending   |                                                                             |
-| Order-API         |                       | Pending   |                                                                             |
-| Cart-API          |                       | Pending   |                                                                             |
-| Payment-API       |                       | Pending   |                                                                             |
-| Review-API        |                       | Pending   |                                                                             |
-| Customer-Care-API |                       | Pending   |                                                                             |
+| Microservices | Design Decisions      | Status    | Readme Link                                                                    |
+|---------------|-----------------------|-----------|--------------------------------------------------------------------------------|
+| Users-API     | Go, RDBMS(PostgreSQL) | Completed | [Link](https://github.com/ashtishad/ecommerce/blob/main/users-api/readme.md)   |
+| Product-API   | Go, RDBMS(PostgreSQL) | Ongoing   | [Link](https://github.com/ashtishad/ecommerce/blob/main/product-api/readme.md) |
+| Auth-API      |                       | Pending   |                                                                                |
+| Order-API     |                       | Pending   |                                                                                |
+| Cart-API      |                       | Pending   |                                                                                |
+| Payment-API   |                       | Pending   |                                                                                |
 
 ### Design Decisions(V1)
 
@@ -44,7 +42,6 @@ Change environment variables in Makefile: Set values in Makefile stored in proje
 - DB_ADDR           `[IP address of the database]` : `localhost`
 - DB_PORT           `[Port of the database]` : `5432`
 - DB_NAME           `[Name of the database]` : `ecommerce`
-- POSTGRESQL_URL    `[Postgres DB Connection URL for golang-migrate cli]`
 
 ###### Postgres Database Setup
 
