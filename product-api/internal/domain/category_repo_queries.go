@@ -11,6 +11,6 @@ const (
     SELECT level FROM category_relationships WHERE descendant_id = $1 LIMIT 1
 	)
 	INSERT INTO category_relationships (ancestor_id, descendant_id, level)
-	VALUES ($2, $3, COALESCE((SELECT level FROM parent_level), 1) + 1);
+	VALUES ($2, $3, COALESCE((SELECT level FROM parent_level), 0) + 1);
 `
 )

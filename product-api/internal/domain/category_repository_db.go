@@ -32,8 +32,7 @@ func (d *CategoryRepoDB) CreateCategory(ctx context.Context, category Category) 
 		return nil, apiErr
 	}
 
-	if err = tx.QueryRowContext(ctx,
-		sqlInsertCategory, category.Name, category.Description).Scan(&category.CategoryID); err != nil {
+	if err = d.executeInsertCategory(ctx, tx, &category); err != nil {
 		return nil, lib.NewInternalServerError(lib.UnexpectedDatabaseErr, err)
 	}
 
@@ -42,6 +41,26 @@ func (d *CategoryRepoDB) CreateCategory(ctx context.Context, category Category) 
 	}
 
 	return d.findCategoryByID(ctx, category.CategoryID)
+}
+
+// ExecuteInsertCategory executes the SQL query to insert a new category
+// Scans category id and assigns to category domain object
+func (d *CategoryRepoDB) executeInsertCategory(ctx context.Context, tx *sql.Tx, category *Category) error {
+	var categoryID int
+	err := tx.QueryRowContext(
+		ctx,
+		sqlInsertCategory,
+		category.Name,
+		category.Description,
+	).Scan(&categoryID)
+
+	if err != nil {
+		return fmt.Errorf("unable to execute insert category: %w", err)
+	}
+
+	category.CategoryID = categoryID
+
+	return nil
 }
 
 func (d *CategoryRepoDB) checkCategoryNameExists(ctx context.Context, categoryName string) lib.APIError {
@@ -106,8 +125,7 @@ func (d *CategoryRepoDB) CreateSubCategory(ctx context.Context, subCategory Cate
 	}
 
 	// first insert sub-category
-	if err = tx.QueryRowContext(ctx,
-		sqlInsertCategory, subCategory.Name, subCategory.Description).Scan(&subCategory.CategoryID); err != nil {
+	if err = d.executeInsertCategory(ctx, tx, &subCategory); err != nil {
 		return nil, lib.NewInternalServerError(lib.UnexpectedDatabaseErr, err)
 	}
 

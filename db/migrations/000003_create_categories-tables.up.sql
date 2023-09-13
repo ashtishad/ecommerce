@@ -17,7 +17,7 @@ CREATE TABLE IF NOT EXISTS category_relationships
 (
     ancestor_id   INT REFERENCES categories (category_id),
     descendant_id INT REFERENCES categories (category_id),
-    level         INT         NOT NULL DEFAULT 1,
+    level INT NOT NULL,
     created_at    TIMESTAMPTZ NOT NULL DEFAULT CURRENT_TIMESTAMP,
     updated_at    TIMESTAMPTZ NOT NULL DEFAULT CURRENT_TIMESTAMP,
     PRIMARY KEY (ancestor_id, descendant_id)
