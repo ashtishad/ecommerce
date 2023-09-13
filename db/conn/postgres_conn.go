@@ -9,8 +9,8 @@ import (
 	"strconv"
 	"time"
 
-	//nolint:revive
-	_ "github.com/lib/pq"
+	"github.com/jackc/pgx/v5"
+	"github.com/jackc/pgx/v5/stdlib"
 )
 
 // GetDSNString constructs a PostgreSQL Data Source Name (DSN) string using environment variables.
@@ -18,7 +18,7 @@ import (
 // The resulting DSN string is in the format:
 // "postgres://user:password@host:port/dbname?sslmode=disable&timezone=UTC"
 // Returns the constructed DSN string.
-func GetDSNString(l *slog.Logger) string {
+func GetDSNString(l *slog.Logger) *url.URL {
 	portInt, err := strconv.Atoi(os.Getenv("DB_PORT"))
 	if err != nil {
 		l.Error("error converting port string to int", "err", err.Error())
@@ -36,18 +36,20 @@ func GetDSNString(l *slog.Logger) string {
 	q.Set("sslmode", "disable")
 	dsn.RawQuery = q.Encode()
 
-	return dsn.String()
+	return &dsn
 }
 
 // GetDBClient creates a new database connection and returns it
 func GetDBClient(l *slog.Logger) *sql.DB {
 	dsn := GetDSNString(l)
-	db, err := sql.Open("postgres", dsn)
+	connConfig, err := pgx.ParseConfig(dsn.String())
 
 	if err != nil {
-		l.Error("error connecting to the database", "err", err.Error())
+		l.Error("parsing postgres URI", "err", err)
 		os.Exit(1)
 	}
+
+	db := stdlib.OpenDB(*connConfig)
 
 	if err = db.Ping(); err != nil {
 		l.Error("error pinging the database", "err", err.Error())

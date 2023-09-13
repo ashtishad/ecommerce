@@ -29,7 +29,7 @@ func TestGetDSNString(t *testing.T) {
 		dbUser, dbPasswd, dbAddr, dbPort, dbName)
 
 	logger := slog.New(slog.NewTextHandler(os.Stdout, nil))
-	result := GetDSNString(logger)
+	result := GetDSNString(logger).String()
 
 	if result != expected {
 		t.Errorf("getDSNString() returned %s; expected %s", result, expected)

@@ -39,7 +39,7 @@ func InitDBClient(l *slog.Logger) *sql.DB {
 
 	m, err := migrate.New(
 		"file://db/migrations",
-		conn.GetDSNString(l),
+		conn.GetDSNString(l).String(),
 	)
 	if err != nil {
 		l.Error("error creating migration: %v", "err", err.Error())
