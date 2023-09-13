@@ -204,15 +204,15 @@ func (d *CategoryRepoDB) BuildTree(rows *sql.Rows) ([]*Category, lib.APIError) {
 	var categories []*Category
 
 	for rows.Next() {
-		var category Category
-		err := rows.Scan(&category.CategoryUUID, &category.ParentCategoryUUID, &category.Level, &category.Name)
+		var c Category
+		err := rows.Scan(&c.CategoryUUID, &c.ParentCategoryUUID, &c.Level, &c.Name, &c.Description, &c.Status, &c.CreatedAt, &c.UpdatedAt)
 
 		if err != nil {
 			d.l.Error("failed to scan rows:", "err", err)
 			return nil, lib.NewInternalServerError(lib.UnexpectedDatabaseErr, err)
 		}
 
-		categories = append(categories, &category)
+		categories = append(categories, &c)
 	}
 
 	if err := rows.Err(); err != nil {
