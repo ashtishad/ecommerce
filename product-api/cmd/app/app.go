@@ -44,6 +44,8 @@ func Start(srv *http.Server, dbClient *sql.DB, l *slog.Logger) {
 func setProductAPIRoutes(r *gin.Engine, ch CategoryHandlers) {
 	categoriesRoutes := r.Group("/categories")
 	{
+		categoriesRoutes.GET("", ch.GetAllCategories)
 		categoriesRoutes.POST("", ch.CreateCategory)
+		categoriesRoutes.POST("/:category_id/subcategories", ch.CreateSubCategory)
 	}
 }

@@ -2,16 +2,16 @@
 
 ### Microservice List
 
-| Microservices     | Design Decisions      | Status    | Readme Link                                                               |
-|-------------------|-----------------------|-----------|---------------------------------------------------------------------------|
-| Users-API         | Go, RDBMS(PostgreSQL) | Completed | [Link](https://github.com/ashtishad/ecommerce/tree/main/users-api#readme) |
-| Product-API       | Go, RDBMS(PostgreSQL) | Ongoing   |                                                                           |
-| Auth-API          |                       | Pending   |                                                                           |
-| Order-API         |                       | Pending   |                                                                           |
-| Cart-API          |                       | Pending   |                                                                           |
-| Payment-API       |                       | Pending   |                                                                           |
-| Review-API        |                       | Pending   |                                                                           |
-| Customer-Care-API |                       | Pending   |                                                                           |
+| Microservices     | Design Decisions      | Status    | Readme Link                                                                 |
+|-------------------|-----------------------|-----------|-----------------------------------------------------------------------------|
+| Users-API         | Go, RDBMS(PostgreSQL) | Completed | [Link](https://github.com/ashtishad/ecommerce/tree/main/users-api#readme)   |
+| Product-API       | Go, RDBMS(PostgreSQL) | Ongoing   | [Link](https://github.com/ashtishad/ecommerce/tree/main/product-api#readme) |
+| Auth-API          |                       | Pending   |                                                                             |
+| Order-API         |                       | Pending   |                                                                             |
+| Cart-API          |                       | Pending   |                                                                             |
+| Payment-API       |                       | Pending   |                                                                             |
+| Review-API        |                       | Pending   |                                                                             |
+| Customer-Care-API |                       | Pending   |                                                                             |
 
 ### Design Decisions(V1)
 
@@ -29,55 +29,6 @@
 * Document Based/NoSQL DB: MongoDB.
 * Cache preference: Redis.
 
-###### Users-API
-
-* RDBMS: MySQL/PostgreSQL (for structured data)
-* Database Name: ecommerce
-* Cache: Redis
-* Password Hashing: Salt
-
-###### Auth-api
-
-* Auth System: Oauth2 (JWT and Google Auth)
-* DBMS: PostgreSQL (handling secure transactions)
-* Database Name: Auth
-* Cache: Redis (to quickly retrieve tokens and session information)
-
-###### Product-API
-
-* DBMS: PostgreSQL (for relational product attributes and categories).
-* Database Name: Products.
-* Cache: Redis (for caching popular products).
-
-###### Order-API
-
-* DBMS: PostgreSQL (to store complex order relationships).
-* Database Name: Orders.
-* Cache: Redis (for caching user cart details).
-
-###### Cart-API
-
-* DBMS: MongoDB (for flexible cart structures).
-* Database Name: Carts.
-* Cache: Redis (for quick access to cart data).
-
-###### Payment-API
-
-* DBMS: PostgreSQL (secure transaction handling).
-* Database Name: Payments.
-* Cache: Redis (for caching transaction data).
-
-###### Review-API
-
-* DBMS: MongoDB (to store varied review formats)
-* Database Name: Reviews
-* Cache: Redis (for caching popular reviews)
-
-###### Customer-Care-API
-
-* DBMS: PostgreSQL (structured customer care tickets)
-* Database Name: CustomerCare
-* Cache: Redis (for quickly accessing open tickets)
 
 #### Environment Setup
 
@@ -112,18 +63,18 @@ Change environment variables in Makefile: Set values in Makefile stored in proje
 
 #### Project Structure
 ```
-├── .github/workflows               <-- Github CI workflows(Build, Test, Lint).
-├── assets                          <-- For project root specific static assets.
-├── config                          <-- Database initialization on docker compose.
-├── db/migrations                   <-- Postgres DB migrations scripts for golang-migrate.
-├── users-api                       <-- Users API microservice.
-├── product-api                     <-- Auth API microservice.
-├── lib                             <-- Common setup, configs used across all services.
-├── compose.yaml                    <-- Docker services setup(databases)
-├── golangci.yml                    <-- Config for golangci-lint. 
-├── Makefile                        <-- Builds the whole app with exporting environment variables.
-├── main.go                         <-- Responsible to start all server of this microservice
-├── readme.md                       <-- Ecommerce Project Central Readme.
+├── .github/workflows        <-- Github CI workflows(Build, Test, Lint).
+├── assets                   <-- For project root specific static assets.
+├── config                   <-- Database initialization on docker compose.
+├── db/migrations            <-- Postgres DB migrations scripts for golang-migrate.
+├── users-api                <-- Users API microservice.
+├── product-api              <-- Auth API microservice.
+├── lib                      <-- Common setup, configs used across all services.
+├── compose.yaml             <-- Docker services setup(databases)
+├── golangci.yml             <-- Config for golangci-lint. 
+├── Makefile                 <-- Builds the whole app with exporting environment variables.
+├── main.go                  <-- Start all server concurrently, init logger, init db, env port check, graceful shutdown.
+├── readme.md                <-- Ecommerce Project Central Readme.
 
 ```
 

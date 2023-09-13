@@ -8,8 +8,6 @@
 * Logging      : Structured log with [slog](https://pkg.go.dev/log/slog#section-documentation)
 * 3rd Party Libraries Used:
   * Web Framework: [gin](https://github.com/gin-gonic/gin)
-  * Postgres Driver : [pq](https://pkg.go.dev/github.com/lib/pq#section-readme)
-  * DB migrations: [migrate](https://github.com/golang-migrate/migrate)
   * Mock Testing: [go-sqlmock](https://github.com/DATA-DOG/go-sqlmock)
   * Mock Testing: [testify](https://github.com/stretchr/testify/)
   * Fake data generate: [gofakeit](https://github.com/brianvoe/gofakeit)
@@ -19,8 +17,8 @@
 
 ├── cmd
 │   └── app
-│       └── app.go                        <-- Define routes, logger setup, wire up handler, start users-api server
-│       └── handlers.go                   <-- User handlers for app endpoints
+│       └── app.go                        <-- Wire up the handlers, route setup, start users-api server
+│       └── handlers.go                   <-- Gin handlers for users-api.
 │       └── handlers_test.go              <-- User handlers tests only for 200 OK.
 ├── internal
 │   └── domain
