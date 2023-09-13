@@ -67,3 +67,5 @@ linters-settings:
   nakedret:
     # Make an issue if func has more lines of code than this setting, and it has naked returns.
     max-func-lines: 30
+  wsl:
+    allow-cuddle-declarations: true
