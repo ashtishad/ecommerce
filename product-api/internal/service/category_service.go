@@ -9,6 +9,7 @@ import (
 
 type CategoryService interface {
 	NewCategory(ctx context.Context, req domain.NewCategoryRequestDTO) (*domain.CategoryResponseDTO, lib.APIError)
+	NewSubCategory(ctx context.Context, req domain.NewCategoryRequestDTO, parentUUID string) (*domain.CategoryResponseDTO, lib.APIError)
 }
 
 type DefaultCategoryService struct {
@@ -35,6 +36,26 @@ func (s *DefaultCategoryService) NewCategory(ctx context.Context, req domain.New
 	}
 
 	response := createdCategory.ToCategoryResponseDTO()
+
+	return response, nil
+}
+
+func (s *DefaultCategoryService) NewSubCategory(ctx context.Context, req domain.NewCategoryRequestDTO, parentUUID string) (*domain.CategoryResponseDTO, lib.APIError) {
+	if apiErr := ValidateNewCategoryRequest(req); apiErr != nil {
+		return nil, apiErr
+	}
+
+	subCategory := domain.Category{
+		Name:        req.Name,
+		Description: req.Description,
+	}
+
+	createdSubCategory, apiErr := s.repo.CreateSubCategory(ctx, subCategory, parentUUID)
+	if apiErr != nil {
+		return nil, apiErr
+	}
+
+	response := createdSubCategory.ToCategoryResponseDTO()
 
 	return response, nil
 }

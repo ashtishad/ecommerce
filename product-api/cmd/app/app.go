@@ -45,5 +45,6 @@ func setProductAPIRoutes(r *gin.Engine, ch CategoryHandlers) {
 	categoriesRoutes := r.Group("/categories")
 	{
 		categoriesRoutes.POST("", ch.CreateCategory)
+		categoriesRoutes.POST("/:category_id/subcategories", ch.CreateSubCategory)
 	}
 }
