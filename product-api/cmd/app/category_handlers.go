@@ -52,7 +52,7 @@ func (ch *CategoryHandlers) CreateSubCategory(c *gin.Context) {
 		return
 	}
 
-	timeoutCtx, cancel := context.WithTimeout(c.Request.Context(), lib.TimeoutCreateCategory)
+	timeoutCtx, cancel := context.WithTimeout(c.Request.Context(), lib.TimeoutCreateSubcategory)
 	defer cancel()
 
 	createdCategory, apiErr := ch.service.NewSubCategory(timeoutCtx, newCategoryReqDTO, parentUUID)
@@ -62,4 +62,19 @@ func (ch *CategoryHandlers) CreateSubCategory(c *gin.Context) {
 	}
 
 	c.JSON(http.StatusOK, createdCategory)
+}
+
+func (ch *CategoryHandlers) GetAllCategories(c *gin.Context) {
+	timeoutCtx, cancel := context.WithTimeout(c.Request.Context(), lib.TimeoutGetAllCategories)
+	defer cancel()
+
+	categories, apiErr := ch.service.GetAllCategoriesByHierarchy(timeoutCtx)
+	if apiErr != nil {
+		ch.l.Error("failed to fetch categories", "err", apiErr.Error())
+		c.JSON(apiErr.StatusCode(), apiErr)
+
+		return
+	}
+
+	c.JSON(http.StatusOK, categories)
 }

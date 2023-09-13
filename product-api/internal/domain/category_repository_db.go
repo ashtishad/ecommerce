@@ -187,3 +187,69 @@ func (d *CategoryRepoDB) insertCategoryRelationship(ctx context.Context, tx *sql
 
 	return nil
 }
+
+func (d *CategoryRepoDB) GetAllCategoriesWithHierarchy(ctx context.Context) ([]*Category, lib.APIError) {
+	rows, err := d.db.QueryContext(ctx, sqlGetAllCategoriesWithHierarchy)
+	if err != nil {
+		d.l.Error("failed to query categories:", "err", err)
+		return nil, lib.NewInternalServerError(lib.UnexpectedDatabaseErr, err)
+	}
+	defer rows.Close()
+
+	return BuildTree(rows)
+}
+
+func BuildTree(rows *sql.Rows) ([]*Category, lib.APIError) {
+	var categories []*Category
+
+	for rows.Next() {
+		var category Category
+		err := rows.Scan(&category.CategoryUUID, &category.ParentCategoryUUID, &category.Level, &category.Name)
+
+		if err != nil {
+			return nil, lib.NewInternalServerError(lib.UnexpectedDatabaseErr, err)
+		}
+
+		categories = append(categories, &category)
+	}
+
+	if err := rows.Err(); err != nil {
+		return nil, lib.NewInternalServerError(lib.UnexpectedDatabaseErr, err)
+	}
+
+	emptyParent := sql.NullString{Valid: false}
+
+	return buildTree(categories, emptyParent), nil
+}
+
+func buildTree(categories []*Category, parentUUID sql.NullString) []*Category {
+	var tree []*Category
+
+	for _, c := range categories {
+		if parentUUID.Valid && c.ParentCategoryUUID.Valid && parentUUID.String == c.ParentCategoryUUID.String {
+			children := buildTree(categories, sql.NullString{String: c.CategoryUUID, Valid: true})
+			if len(children) > 0 {
+				sub := make([]Category, len(children))
+				for i := range children {
+					sub[i] = *children[i]
+				}
+
+				c.Subcategories = sub
+			}
+
+			tree = append(tree, c)
+		} else if !parentUUID.Valid && !c.ParentCategoryUUID.Valid {
+			children := buildTree(categories, sql.NullString{String: c.CategoryUUID, Valid: true})
+			if len(children) > 0 {
+				sub := make([]Category, len(children))
+				for i := range children {
+					sub[i] = *children[i]
+				}
+				c.Subcategories = sub
+			}
+			tree = append(tree, c)
+		}
+	}
+
+	return tree
+}

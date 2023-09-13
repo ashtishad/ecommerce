@@ -10,6 +10,7 @@ import (
 type CategoryService interface {
 	NewCategory(ctx context.Context, req domain.NewCategoryRequestDTO) (*domain.CategoryResponseDTO, lib.APIError)
 	NewSubCategory(ctx context.Context, req domain.NewCategoryRequestDTO, parentUUID string) (*domain.CategoryResponseDTO, lib.APIError)
+	GetAllCategoriesByHierarchy(ctx context.Context) ([]*domain.CategoryResponseDTO, lib.APIError)
 }
 
 type DefaultCategoryService struct {
@@ -58,4 +59,18 @@ func (s *DefaultCategoryService) NewSubCategory(ctx context.Context, req domain.
 	response := createdSubCategory.ToCategoryResponseDTO()
 
 	return response, nil
+}
+
+func (s *DefaultCategoryService) GetAllCategoriesByHierarchy(ctx context.Context) ([]*domain.CategoryResponseDTO, lib.APIError) {
+	categories, apiErr := s.repo.GetAllCategoriesWithHierarchy(ctx)
+	if apiErr != nil {
+		return nil, apiErr
+	}
+
+	categoryResponseDTOs := make([]*domain.CategoryResponseDTO, 0, len(categories))
+	for _, category := range categories {
+		categoryResponseDTOs = append(categoryResponseDTOs, category.ToCategoryResponseDTO())
+	}
+
+	return categoryResponseDTOs, nil
 }
