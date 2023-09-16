@@ -2,6 +2,7 @@ package main
 
 import (
 	"context"
+	"database/sql"
 	"os"
 	"os/signal"
 	"sync"
@@ -20,9 +21,14 @@ func main() {
 	lib.SanityCheck(l)
 
 	dbClient := lib.InitDBClient(l)
-	defer dbClient.Close()
+	defer func(dbClient *sql.DB) {
+		if dbClsErr := dbClient.Close(); dbClsErr != nil {
+			l.Error("unable to close db", "err", dbClsErr)
+			os.Exit(1)
+		}
+	}(dbClient)
 
-	// generate.GenerateUsers(dbClient, l, 1000)
+	// generate.Users(dbClient, l, 1000)
 
 	userServer := lib.InitServerConfig("USER_API_PORT")
 

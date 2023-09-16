@@ -45,7 +45,7 @@ func InitDBClient(l *slog.Logger) *sql.DB {
 		l.Error("error creating migration: %v", "err", err.Error())
 	}
 
-	if err := m.Up(); err != nil && !errors.Is(err, migrate.ErrNoChange) {
+	if err = m.Up(); err != nil && !errors.Is(err, migrate.ErrNoChange) {
 		l.Error("error applying migration: %v", "err", err.Error())
 	}
 

@@ -15,7 +15,7 @@ const (
 `
 
 	sqlGetAllCategoriesWithHierarchy = `WITH RECURSIVE CategoryTree AS (
-    SELECT c.category_id, c.category_uuid, CAST(NULL AS uuid) AS parent_category_uuid, c.name, c.description, c.status, c.created_at, c.updated_at, 1 AS level
+    SELECT c.category_id, c.category_uuid, CAST(NULL AS uuid) AS parent_category_uuid, c.name, c.description, c.status, c.created_at, c.updated_at, 0 AS level
     FROM categories c
     WHERE c.category_id NOT IN (SELECT descendant_id FROM category_relationships)
     UNION ALL
