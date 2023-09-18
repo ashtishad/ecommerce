@@ -2,7 +2,7 @@ BEGIN;
 
 CREATE TYPE sim_type AS ENUM ('Single', 'Dual');
 CREATE TYPE codec_type AS ENUM ('SBC', 'AAC', 'Aptx', 'LDAC');
-CREATE TYPE strap_type AS ENUM ('Steel', 'Metal', 'Leather');
+CREATE TYPE strap_type AS ENUM ('Steel', 'Rubber', 'Leather', 'Silicone');
 CREATE TYPE variant_type AS ENUM ('UAE', 'Official', 'USA', 'China', 'UK');
 
 
