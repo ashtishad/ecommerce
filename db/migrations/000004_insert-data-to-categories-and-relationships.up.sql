@@ -37,6 +37,7 @@ alter sequence categories_category_id_seq restart 18;
 INSERT INTO category_relationships (ancestor_id, descendant_id, level)
 VALUES
     -- For parent category 'Phone'
+    (1, 1, 0),
     (1, 2, 1),
     (1, 3, 1),
     (1, 4, 1),
@@ -44,6 +45,7 @@ VALUES
     (1, 6, 1),
 
     -- For parent category 'SoundEquipment'
+    (7, 7, 0),
     (7, 8, 1),
     (7, 9, 1),
     (7, 10, 1),
@@ -52,6 +54,7 @@ VALUES
     (7, 13, 1),
 
     -- For parent category 'Wearable'
+    (14, 14, 0),
     (14, 15, 1),
     (14, 16, 1),
     (14, 17, 1)

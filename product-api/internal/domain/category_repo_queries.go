@@ -6,6 +6,8 @@ const (
 	sqlSelectCategoryByID   = `SELECT category_id,category_uuid,name, description,status,created_at,updated_at FROM categories where category_id= $1`
 	sqlValidateUUIDGetCatID = `SELECT category_id, EXISTS(SELECT 1 FROM categories WHERE name = $2 AND status = 'active') FROM categories WHERE category_uuid = $1`
 
+	sqlRootCategoryRel = `INSERT INTO category_relationships (ancestor_id, descendant_id, level)
+	VALUES ($1, $1,0);`
 	sqlInsertWithLevelCalculation = `
 	WITH parent_level AS (
     SELECT level FROM category_relationships WHERE descendant_id = $1 LIMIT 1
