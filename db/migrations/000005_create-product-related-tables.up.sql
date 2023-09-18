@@ -9,7 +9,7 @@ CREATE TABLE IF NOT EXISTS products
 (
     product_id       SERIAL PRIMARY KEY,
     product_uuid uuid NOT NULL DEFAULT uuid_generate_v4(),
-    root_category_id INT REFERENCES categories (category_id),
+    Type VARCHAR(255) REFERENCES categories (name),
     sku              VARCHAR(255) NOT NULL UNIQUE,
     created_at       TIMESTAMPTZ  NOT NULL DEFAULT CURRENT_TIMESTAMP,
     updated_at       TIMESTAMPTZ  NOT NULL DEFAULT CURRENT_TIMESTAMP

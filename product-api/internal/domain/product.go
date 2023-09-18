@@ -5,12 +5,12 @@ import (
 )
 
 type Product struct {
-	ProductID      int
-	ProductUUID    string
-	RootCategoryID int
-	SKU            string
-	CreatedAt      time.Time
-	UpdatedAt      time.Time
+	ProductID        int
+	ProductUUID      string
+	RootCategoryName string
+	SKU              string
+	CreatedAt        time.Time
+	UpdatedAt        time.Time
 }
 
 type PhoneAttribute struct {
