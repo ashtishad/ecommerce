@@ -36,11 +36,26 @@ func (d *CategoryRepoDB) CreateCategory(ctx context.Context, category Category) 
 		return nil, lib.NewInternalServerError(lib.UnexpectedDatabaseErr, err)
 	}
 
+	if err = d.insertRootCategoryRels(ctx, tx, &category.CategoryID); err != nil {
+		return nil, lib.NewInternalServerError(lib.UnexpectedDatabaseErr, err)
+	}
+
 	if err = tx.Commit(); err != nil {
 		return nil, lib.NewInternalServerError(lib.UnexpectedDatabaseErr, err)
 	}
 
 	return d.findCategoryByID(ctx, category.CategoryID)
+}
+
+// insertRootCategoryRels inserts level zero rels.
+func (d *CategoryRepoDB) insertRootCategoryRels(ctx context.Context, tx *sql.Tx, categoryID *int) lib.APIError {
+	_, err := tx.ExecContext(ctx, sqlInsertLevelZeroRels, categoryID, categoryID)
+	if err != nil {
+		d.l.Error("failed to insert into level zero category_relationships:", "err", err)
+		return lib.NewInternalServerError(lib.UnexpectedDatabaseErr, err)
+	}
+
+	return nil
 }
 
 // ExecuteInsertCategory executes the SQL query to insert a new category

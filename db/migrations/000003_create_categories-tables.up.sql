@@ -6,7 +6,7 @@ CREATE TABLE IF NOT EXISTS categories
 (
     category_id   SERIAL PRIMARY KEY,
     category_uuid uuid            NOT NULL DEFAULT uuid_generate_v4(),
-    name          VARCHAR(255)    NOT NULL,
+    name VARCHAR(255) NOT NULL UNIQUE,
     description   TEXT,
     status        category_status NOT NULL DEFAULT 'active',
     created_at    TIMESTAMPTZ     NOT NULL DEFAULT CURRENT_TIMESTAMP,

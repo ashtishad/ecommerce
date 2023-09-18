@@ -13,6 +13,7 @@ import (
 	"time"
 
 	"github.com/ashtishad/ecommerce/db/conn"
+	"github.com/ashtishad/ecommerce/db/generate"
 	"github.com/golang-migrate/migrate/v4"
 )
 
@@ -49,7 +50,7 @@ func InitDBClient(l *slog.Logger) *sql.DB {
 		l.Error("error applying migration: %v", "err", err.Error())
 	}
 
-	// generate.Users(dbClient, l, 1000)
+	generate.Users(dbClient, l, 1000)
 
 	return dbClient
 }
