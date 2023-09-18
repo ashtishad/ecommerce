@@ -7,6 +7,7 @@ import (
 type Product struct {
 	ProductID      int
 	ProductUUID    string
+	Name           string
 	CategoryID     int
 	RootCategoryID int
 	CreatedAt      time.Time

@@ -10,6 +10,7 @@ CREATE TABLE IF NOT EXISTS products
 (
     product_id       SERIAL PRIMARY KEY,
     product_uuid     uuid        NOT NULL DEFAULT uuid_generate_v4(),
+    name varchar(255) NOT NULL,
     category_id      INT REFERENCES categories (category_id), -- product belong to a sub-category(like: smartphone, tws etc
     root_category_id INT REFERENCES categories (category_id), --- attributes depend on root category of level 0, like, Phone, Wearables
     created_at       TIMESTAMPTZ NOT NULL DEFAULT CURRENT_TIMESTAMP,
