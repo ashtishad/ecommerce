@@ -5,7 +5,8 @@ CREATE TABLE IF NOT EXISTS products
 (
     product_id   SERIAL PRIMARY KEY,
     product_uuid UUID         NOT NULL DEFAULT uuid_generate_v4(),
-    Product_name varchar(256) NOT NULL,
+    name  varchar(256) NOT NULL,
+    color varchar(256) NOT NULL,
     category_id  INT REFERENCES categories (category_id),
     product_type varchar(256) NOT NULL,
     created_at   TIMESTAMPTZ  NOT NULL DEFAULT CURRENT_TIMESTAMP,
