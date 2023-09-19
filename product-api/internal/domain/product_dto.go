@@ -36,7 +36,7 @@ func (p Product) ToProductResponseDTO() *ProductResponseDTO {
 		ProductName:  p.Name,
 		Color:        p.Color,
 		CategoryUUID: p.CategoryUUID,
-		ProductType:  ProductType(p.ProductType),
+		ProductType:  p.ProductType,
 		CreatedAt:    p.CreatedAt,
 		UpdatedAt:    p.UpdatedAt,
 	}

@@ -85,6 +85,7 @@ type SimType string
 const (
 	SimTypeSingle SimType = "Single"
 	SimTypeDual   SimType = "Dual"
+	SimTypeEsim   SimType = "eSim"
 )
 
 type StorageType int

@@ -4,11 +4,12 @@ BEGIN;
 CREATE TABLE IF NOT EXISTS products
 (
     product_id   SERIAL PRIMARY KEY,
-    product_uuid UUID         NOT NULL DEFAULT uuid_generate_v4(),
+    product_uuid UUID   NOT NULL DEFAULT uuid_generate_v4(),
     name  varchar(256) NOT NULL,
     color varchar(256) NOT NULL,
+    PriceInCents BIGINT NOT NULL,
+    Stock        INT    NOT NULL,
     category_id  INT REFERENCES categories (category_id),
-    product_type varchar(256) NOT NULL,
     created_at   TIMESTAMPTZ  NOT NULL DEFAULT CURRENT_TIMESTAMP,
     updated_at   TIMESTAMPTZ  NOT NULL DEFAULT CURRENT_TIMESTAMP
 );
@@ -28,3 +29,4 @@ CREATE TABLE IF NOT EXISTS product_attributes
 CREATE INDEX idx_product_attribute ON product_attributes (product_id, attribute_name);
 
 COMMIT;
+
