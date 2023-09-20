@@ -24,9 +24,13 @@ func Start(srv *http.Server, dbClient *sql.DB, l *slog.Logger) {
 		service: service.NewCategoryService(categoryRepoDB),
 		l:       l,
 	}
+
+	brandRepoDB := domain.NewBrandRepoDB(dbClient, l)
+	bh := BrandHandler{s: service.NewBrandService(brandRepoDB)}
+
 	// route url mappings
 	setProductAPIRoutes(r, ch)
-
+	setBrandAPIRoutes(r, bh)
 	// custom logger middleware
 	r.Use(gin.LoggerWithFormatter(lib.Logger))
 
@@ -48,4 +52,8 @@ func setProductAPIRoutes(r *gin.Engine, ch CategoryHandlers) {
 		categoriesRoutes.POST("", ch.CreateCategory)
 		categoriesRoutes.POST("/:category_id/subcategories", ch.CreateSubCategory)
 	}
+}
+
+func setBrandAPIRoutes(r *gin.Engine, bh BrandHandler) {
+	r.GET("/brands", bh.GetAllBrands)
 }
