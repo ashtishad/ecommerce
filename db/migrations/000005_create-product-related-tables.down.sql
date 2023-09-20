@@ -1,6 +1,6 @@
 BEGIN;
 
-DROP TABLE IF EXISTS product_colors_map CASCADE;
+DROP TABLE IF EXISTS product_colors CASCADE;
 
 DROP TABLE IF EXISTS colors CASCADE;
 

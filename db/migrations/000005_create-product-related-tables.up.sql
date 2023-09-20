@@ -41,7 +41,7 @@ CREATE TABLE IF NOT EXISTS colors
     updated_at TIMESTAMPTZ  NOT NULL DEFAULT now()
 );
 
-CREATE TABLE IF NOT EXISTS product_colors_map
+CREATE TABLE IF NOT EXISTS product_colors
 (
     product_color_id SERIAL PRIMARY KEY,
     product_id       BIGINT       NOT NULL REFERENCES products (product_id),
